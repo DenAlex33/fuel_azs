@@ -4,13 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Заправки Рядом</title>
-    <script src="https://vk.com/js/api/bridge.js"></script>
+    <script src="https://unpkg.com/@vkontakte/vk-bridge@latest/dist/browser.min.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #f5f5f5;
+            background: var(--vkui--color_background_primary, #ffffff);
+            color: var(--vkui--color_text_primary, #000000);
+            padding: 16px;
         }
         .container {
             max-width: 600px;
@@ -18,6 +23,8 @@
         }
         h1 {
             color: #0077FF;
+            margin-bottom: 16px;
+            font-size: 24px;
         }
         .btn {
             background: #0077FF;
@@ -28,36 +35,86 @@
             font-size: 16px;
             cursor: pointer;
             margin: 10px 0;
+            width: 100%;
         }
         .btn:hover {
             background: #0055CC;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            background: #f0f0f0;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1> Заправки Рядом</h1>
-        <p>Мониторинг наличия топлива на АЗС</p>
-
-        <button class="btn" onclick="openBot()">📱 Открыть бота в VK</button>
+        <h1>⛽ Заправки Рядом</h1>
+        <p style="margin-bottom: 20px;">Мониторинг наличия топлива на АЗС</p>
+        
         <button class="btn" onclick="showMap()">🗺️ Карта АЗС</button>
-
-        <div id="content"></div>
+        <button class="btn" onclick="openBot()">💬 Открыть бота</button>
+        
+        <div id="status" class="status">
+            <strong>Статус:</strong> <span id="status-text">Загрузка...</span>
+        </div>
+        
+        <div id="user-info" style="margin-top: 20px;"></div>
     </div>
 
     <script>
         // Инициализация VK Bridge
-        VKBridge.send('VKWebAppInit');
-
-        function openBot() {
-            // Открытие диалога с ботом
-            VKBridge.send('VKWebAppOpenCodeReader');
-            // Или переход в сообщество
-            window.location.href = 'https://vk.com/ТВОЁ_СООБЩЕСТВО';
-        }
-
+        const statusText = document.getElementById('status-text');
+        
+        // Подписываемся на события VK Bridge
+        vkBridge.subscribe((event) => {
+            console.log('VK Bridge event:', event);
+            
+            if (event.detail.type === 'VKWebAppInit') {
+                statusText.textContent = '✅ Приложение инициализировано';
+            }
+        });
+        
+        // Инициализируем приложение
+        vkBridge.send('VKWebAppInit')
+            .then(() => {
+                statusText.textContent = '✅ Готово к работе';
+                
+                // Получаем данные пользователя
+                return vkBridge.send('VKWebAppGetUserInfo');
+            })
+            .then((data) => {
+                if (data) {
+                    const userInfo = document.getElementById('user-info');
+                    userInfo.innerHTML = `
+                        <p>👤 <strong>${data.first_name} ${data.last_name}</strong></p>
+                        <p>ID: ${data.id}</p>
+                    `;
+                }
+            })
+            .catch((error) => {
+                console.error('Ошибка инициализации:', error);
+                statusText.textContent = '⚠️ Ошибка: ' + error.message;
+            });
+        
         function showMap() {
-            document.getElementById('content').innerHTML = '<p>Здесь будет карта с АЗС</p>';
+            vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'interstitial' })
+                .catch(() => {
+                    // Если реклама не показала, просто покажем сообщение
+                    alert('Здесь будет карта с АЗС');
+                });
+        }
+        
+        function openBot() {
+            // Открываем диалог с ботом сообщества
+            vkBridge.send('VKWebAppOpenCommunityMessages', { 
+                group_id: 241157642 // ID твоего сообщества
+            })
+            .catch((error) => {
+                console.error('Ошибка открытия бота:', error);
+                alert('Откройте сообщения сообщества вручную');
+            });
         }
     </script>
 </body>
