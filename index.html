@@ -139,29 +139,30 @@
         .station-card {
             border-bottom: 1px solid #e5ebf1;
             padding: 12px 0;
-            cursor: pointer;
-            transition: background 0.2s;
         }
         
         .station-card:last-child {
             border-bottom: none;
         }
         
-        .station-card:active {
-            background: #f5f7fa;
+        .station-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
         }
         
         .station-name {
             font-weight: 600;
             font-size: 16px;
-            margin-bottom: 5px;
             color: #000;
+            flex: 1;
         }
         
         .station-address {
             font-size: 13px;
             color: #818c99;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         
         .station-status {
@@ -170,6 +171,7 @@
             border-radius: 12px;
             font-size: 12px;
             font-weight: 500;
+            margin-bottom: 10px;
         }
         
         .status-available {
@@ -185,6 +187,41 @@
         .status-unknown {
             background: #fff3cd;
             color: #856404;
+        }
+        
+        .report-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .report-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .report-btn-available {
+            background: #28a745;
+            color: white;
+        }
+        
+        .report-btn-available:active {
+            background: #218838;
+        }
+        
+        .report-btn-unavailable {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .report-btn-unavailable:active {
+            background: #c82333;
         }
         
         .user-info {
@@ -224,6 +261,25 @@
         
         .hidden {
             display: none;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .toast.show {
+            opacity: 1;
         }
     </style>
 </head>
@@ -266,11 +322,14 @@
     <div id="loading" class="loading" style="display: none;">
         <p>⏳ Загрузка...</p>
     </div>
+    
+    <div id="toast" class="toast"></div>
 
     <script>
         let myMap;
         let selectedFuel = null;
         let userData = null;
+        const BACKEND_URL = 'http://localhost:8000'; // Замени на свой URL после деплоя
         
         // Инициализация VK Bridge
         vkBridge.subscribe((event) => {
@@ -301,7 +360,7 @@
         function initMap() {
             ymaps.ready(function () {
                 myMap = new ymaps.Map("map", {
-                    center: [55.751244, 37.618423], // Москва по умолчанию
+                    center: [55.751244, 37.618423],
                     zoom: 10,
                     controls: ['zoomControl']
                 });
@@ -321,12 +380,12 @@
         async function searchStations() {
             const city = document.getElementById('city-input').value.trim();
             if (!city) {
-                alert('Введите название города или района');
+                showToast('Введите название города или района');
                 return;
             }
             
             if (!selectedFuel) {
-                alert('Выберите тип топлива');
+                showToast('Выберите тип топлива');
                 return;
             }
             
@@ -334,20 +393,17 @@
             document.getElementById('stations-list').style.display = 'none';
             
             try {
-                // Здесь будет запрос к твоему FastAPI бэкенду
-                // Пока имитируем
-                const response = await fetch(`/api/search?city=${encodeURIComponent(city)}&fuel=${selectedFuel}`);
+                const response = await fetch(`${BACKEND_URL}/api/search?city=${encodeURIComponent(city)}&fuel=${selectedFuel}`);
                 
                 if (response.ok) {
-                    const data = await response.json();
-                    displayStations(data.stations);
+                    const stations = await response.json();
+                    displayStations(stations);
                 } else {
-                    // Если бэкенд ещё не готов, показываем заглушку
-                    alert('Бэкенд пока не подключён. Скоро здесь будет поиск АЗС!');
+                    showToast('Ошибка при поиске. Попробуйте позже.');
                 }
             } catch (error) {
                 console.error('Ошибка поиска:', error);
-                alert('Ошибка при поиске. Попробуйте позже.');
+                showToast('Ошибка соединения с сервером');
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
@@ -364,32 +420,52 @@
                 return;
             }
             
-            stations.forEach((station, index) => {
+            stations.forEach((station) => {
                 const card = document.createElement('div');
                 card.className = 'station-card';
-                card.onclick = () => selectStation(station);
                 
-                const statusClass = station.available ? 'status-available' : 'status-unknown';
-                const statusText = station.available ? '✅ Есть' : '❓ Неизвестно';
+                let statusClass, statusText;
+                if (station.status === 'available') {
+                    statusClass = 'status-available';
+                    statusText = '✅ Есть топливо';
+                } else if (station.status === 'unavailable') {
+                    statusClass = 'status-unavailable';
+                    statusText = '❌ Нет топлива';
+                } else {
+                    statusClass = 'status-unknown';
+                    statusText = '❓ Статус неизвестен';
+                }
                 
                 card.innerHTML = `
-                    <div class="station-name">${station.name}</div>
+                    <div class="station-header">
+                        <div class="station-name">${station.name}</div>
+                    </div>
                     <div class="station-address">📍 ${station.address}</div>
                     <span class="station-status ${statusClass}">${statusText}</span>
+                    <div class="report-buttons">
+                        <button class="report-btn report-btn-available" onclick="reportFuel('${station.id}', '${selectedFuel}', 'available')">
+                            ✅ Здесь есть
+                        </button>
+                        <button class="report-btn report-btn-unavailable" onclick="reportFuel('${station.id}', '${selectedFuel}', 'unavailable')">
+                            ❌ Здесь нет
+                        </button>
+                    </div>
                 `;
                 
                 container.appendChild(card);
                 
                 // Добавляем метку на карту
                 if (myMap && station.lat && station.lon) {
+                    const color = station.status === 'available' ? 'green' : 
+                                  station.status === 'unavailable' ? 'red' : 'blue';
                     const placemark = new ymaps.Placemark(
                         [station.lat, station.lon],
                         {
                             hintContent: station.name,
-                            balloonContent: `<b>${station.name}</b><br>${station.address}`
+                            balloonContent: `<b>${station.name}</b><br>${station.address}<br>${statusText}`
                         },
                         {
-                            preset: 'islands#blueGasStationIcon'
+                            preset: `islands#${color}GasStationIcon`
                         }
                     );
                     myMap.geoObjects.add(placemark);
@@ -399,9 +475,52 @@
             document.getElementById('stations-list').style.display = 'block';
         }
         
-        // Выбор АЗС для подписки
-        function selectStation(station) {
-            alert(`Выбрана АЗС: ${station.name}\n\nЗдесь будет форма подписки на уведомления.`);
+        // Отправка отчёта о топливе
+        async function reportFuel(stationId, fuelType, status) {
+            if (!userData) {
+                showToast('Сначала авторизуйтесь через VK');
+                return;
+            }
+            
+            const statusText = status === 'available' ? 'наличие' : 'отсутствие';
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        vk_id: userData.id,
+                        station_id: stationId,
+                        fuel_type: fuelType,
+                        status: status
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showToast(`Спасибо! Ваш отчёт о ${statusText} принят.`);
+                    
+                    // Обновляем статус на карте
+                    searchStations();
+                } else {
+                    showToast('Ошибка при отправке отчёта');
+                }
+            } catch (error) {
+                console.error('Ошибка отчёта:', error);
+                showToast('Ошибка соединения с сервером');
+            }
+        }
+        
+        // Показать уведомление
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
         
         // Открыть чат с ботом
@@ -409,7 +528,7 @@
             vkBridge.send('VKWebAppOpenCommunityMessages', { 
                 group_id: 241157642 
             }).catch(() => {
-                alert('Откройте сообщения сообщества вручную');
+                showToast('Откройте сообщения сообщества вручную');
             });
         }
     </script>
