@@ -323,7 +323,7 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <h1> Заправки Рядом</h1>
+        <h1>⛽ Заправки Рядом</h1>
     </div>
 
     <!-- User Bar -->
@@ -410,7 +410,10 @@
         let selectedFuel = 'ai95';
         let userData = null;
         let userCoords = null;
-        const BACKEND_URL = 'http://localhost:8000'; // Замени на свой URL после деплоя
+        
+        // ⚠️ ВАЖНО: После деплоя бэкенда замени эту строку на реальный URL твоего сервера!
+        // Например: 'https://твоя-нода.start-ovh.ru:порт'
+        const BACKEND_URL = 'http://localhost:8000'; 
 
         // Инициализация
         vkBridge.send('VKWebAppInit').then(() => {
@@ -494,7 +497,6 @@
         }
 
         function getMockStations(centerLat, centerLon) {
-            // Цены для каждого типа топлива
             const prices = {
                 'ai92': 63.99,
                 'ai95': 69.69,
@@ -514,7 +516,7 @@
                     price: prices[selectedFuel],
                     limit: '50 л',
                     updated: '8 мин назад',
-                    logo: '️'
+                    logo: '🔴'
                 },
                 {
                     id: '2',
@@ -527,7 +529,7 @@
                     price: prices[selectedFuel] + 2,
                     limit: '100 л',
                     updated: '3 мин назад',
-                    logo: ''
+                    logo: '🔴'
                 },
                 {
                     id: '3',
@@ -554,12 +556,10 @@
                 return;
             }
 
-            // Обновляем статистику
             document.getElementById('stat-total').textContent = stations.length;
             document.getElementById('stat-available').textContent = stations.filter(s => s.status === 'available').length;
             document.getElementById('stat-distance').textContent = stations[0]?.distance || '0';
 
-            // Очищаем карту
             if (myMap) {
                 myMap.geoObjects.removeAll();
             }
@@ -584,7 +584,7 @@
                         </div>
                         <div class="station-actions">
                             <button class="btn btn-primary" onclick="navigateTo('${station.address}')">
-                                ️ Поехали
+                                🗺️ Поехали
                             </button>
                             <button class="btn btn-secondary" onclick="refuel('${station.id}')">
                                 ⛽ Заправиться
@@ -610,7 +610,6 @@
                 `;
                 container.appendChild(card);
 
-                // Добавляем метку на карту
                 if (myMap && station.lat && station.lon) {
                     const placemark = new ymaps.Placemark(
                         [station.lat, station.lon],
@@ -628,7 +627,6 @@
         }
 
         function navigateTo(address) {
-            // Открываем навигацию
             vkBridge.send('VKWebAppOpenLocation', {
                 lat: userCoords?.lat || 55.751244,
                 lon: userCoords?.lon || 37.618423
@@ -644,21 +642,24 @@
         function openChat() {
             const groupId = 241157642;
             
-            // Пробуем несколько способов открыть чат
             console.log('Открываем чат с группой', groupId);
             
-            // Способ 1: Через VK Bridge (работает если Mini App из сообщества)
+            // Способ 1: Через VK Bridge (нативное открытие чата)
             vkBridge.send('VKWebAppOpenCommunityMessages', { 
                 group_id: groupId 
             }).then(() => {
                 console.log('✅ Чат открыт через VK Bridge');
             }).catch((error) => {
-                console.error(' VK Bridge не сработал:', error);
+                console.error('❌ VK Bridge не сработал, используем запасной вариант:', error);
                 
-                // Способ 2: Открываем диалог с сообществом через браузер
+                // Способ 2: Открываем диалог через внутреннюю ссылку VK (надёжнее чем window.open)
                 const dialogUrl = `https://vk.com/im?sel=-${groupId}`;
-                window.open(dialogUrl, '_blank');
-                console.log('📱 Открыт диалог через URL');
+                vkBridge.send('VKWebAppOpenLink', { 
+                    link: dialogUrl 
+                }).catch(() => {
+                    // Если и это не сработало, пробуем обычное открытие в новой вкладке
+                    window.open(dialogUrl, '_blank');
+                });
             });
         }
     </script>
