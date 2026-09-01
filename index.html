@@ -480,6 +480,34 @@
             line-height: 1.5;
         }
 
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .stat-item {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
         /* Responsive */
         @media (max-width: 600px) {
             .fuel-grid {
@@ -513,7 +541,23 @@
                     <p>ID: <span id="user-id">...</span></p>
                 </div>
             </div>
-            <button class="btn-chat" onclick="openBot()" title="Чат с ботом">💬</button>
+            <button class="btn-chat" onclick="openChat()" title="Чат с поддержкой"></button>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar" id="stats-bar" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-value" id="stat-total">0</div>
+                <div class="stat-label">Всего АЗС</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-available">0</div>
+                <div class="stat-label">Есть топливо</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-distance">0</div>
+                <div class="stat-label">Ближайшая, км</div>
+            </div>
         </div>
 
         <!-- Search & Fuel Controls -->
@@ -526,14 +570,14 @@
                     class="search-input"
                     placeholder="Введите город или район..."
                 >
-                <button class="btn-geo" onclick="useMyLocation()" title="Моё местоположение">📍</button>
+                <button class="btn-geo" onclick="useMyLocation()" title="Моё местоположение"></button>
             </div>
             <button class="btn-search" onclick="searchStations()">
                 🔍 Найти заправки
             </button>
 
             <div style="margin-top: 24px;">
-                <div class="section-title"> Тип топлива</div>
+                <div class="section-title">⛽ Тип топлива</div>
                 <div class="fuel-grid">
                     <div class="fuel-card" data-fuel="ai92" onclick="selectFuel('ai92')">
                         <div class="fuel-icon">92</div>
@@ -583,7 +627,8 @@
         let myMap;
         let selectedFuel = 'ai95';
         let userData = null;
-        const BACKEND_URL = 'http://localhost:8000';
+        let userCoords = null;
+        const BACKEND_URL = 'http://localhost:8000'; // Замени на свой URL когда будет бэкенд
 
         // Инициализация
         vkBridge.send('VKWebAppInit').then(() => {
@@ -604,9 +649,9 @@
         function initMap() {
             ymaps.ready(function () {
                 myMap = new ymaps.Map("map", {
-                    center: [55.751244, 37.618423],
+                    center: [55.751244, 37.618423], // Москва по умолчанию
                     zoom: 10,
-                    controls: ['zoomControl']
+                    controls: ['zoomControl', 'geolocationControl']
                 });
             });
         }
@@ -618,10 +663,13 @@
         }
 
         async function useMyLocation() {
-            showToast('📍 Определяем местоположение...', '');
+            showToast(' Определяем местоположение...', '');
+            
+            // Пробуем через VK Bridge
             try {
                 const data = await vkBridge.send('VKWebAppGetLocation');
                 if (data && data.lat) {
+                    userCoords = { lat: data.lat, lon: data.lon };
                     document.getElementById('city-input').value = 'Моё местоположение';
                     searchStationsByCoords(data.lat, data.lon);
                     return;
@@ -630,13 +678,23 @@
                 console.log('VK Geolocation failed');
             }
 
+            // Пробуем через браузер
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
+                        userCoords = { 
+                            lat: position.coords.latitude, 
+                            lon: position.coords.longitude 
+                        };
                         document.getElementById('city-input').value = 'Моё местоположение';
                         searchStationsByCoords(position.coords.latitude, position.coords.longitude);
                     },
-                    () => showToast('Не удалось определить местоположение', 'error')
+                    () => showToast('Не удалось определить местоположение', 'error'),
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
                 );
             } else {
                 showToast('Геолокация не поддерживается', 'error');
@@ -655,15 +713,23 @@
             document.getElementById('stations-list').style.display = 'none';
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/search?city=${encodeURIComponent(city)}&fuel=${selectedFuel}`);
-                if (response.ok) {
-                    const stations = await response.json();
-                    displayStations(stations);
+                // Пытаемся получить координаты города через геокодер Яндекса
+                const response = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=YOUR_API_KEY&geocode=${encodeURIComponent(city)}&format=json`);
+                // Если нет API ключа, используем демо-данные
+                if (!response.ok) {
+                    throw new Error('No API key');
+                }
+                const data = await response.json();
+                const coords = data.response.GeoObjectCollection.featureMember[0]?.GeoObject?.Point?.pos.split(' ');
+                
+                if (coords) {
+                    const [lon, lat] = coords;
+                    await searchStationsByCoords(parseFloat(lat), parseFloat(lon));
                 } else {
-                    throw new Error('Backend error');
+                    throw new Error('City not found');
                 }
             } catch (error) {
-                console.warn('Backend unavailable, using demo mode');
+                console.warn('Using demo mode');
                 showToast('🎨 Демо-режим: тестовые данные', 'success');
                 displayStations(getMockStations());
             } finally {
@@ -676,15 +742,69 @@
             document.getElementById('stations-list').style.display = 'none';
 
             try {
-                showToast(' Поиск по координатам...', '');
+                // Центрируем карту на местоположении пользователя
+                if (myMap) {
+                    myMap.setCenter([lat, lon], 13);
+                }
+
+                // Увеличенный радиус поиска - 5 км
+                const radius = 5000; // метров
+                
+                // Запрос к бэкенду (если есть)
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/stations/nearby?lat=${lat}&lon=${lon}&radius=${radius}&fuel=${selectedFuel}`);
+                    if (response.ok) {
+                        const stations = await response.json();
+                        displayStations(stations);
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Backend not available');
+                }
+
+                // Демо-данные с улучшенной логикой (больше заправок)
+                showToast(' Ищем заправки в радиусе 5 км...', '');
                 setTimeout(() => {
-                    displayStations(getMockStations(lat, lon));
+                    const stations = getEnhancedMockStations(lat, lon);
+                    displayStations(stations);
                     document.getElementById('loading').classList.remove('show');
-                }, 1000);
+                }, 1500);
             } catch (error) {
                 document.getElementById('loading').classList.remove('show');
                 showToast('Ошибка поиска', 'error');
             }
+        }
+
+        // Улучшенные демо-данные (больше заправок)
+        function getEnhancedMockStations(centerLat, centerLon) {
+            const stations = [
+                { id: '1', name: 'Лукойл', address: 'МКАД 2 км, вл5', lat: centerLat + 0.01, lon: centerLon + 0.01, status: 'available', distance: 1.2 },
+                { id: '2', name: 'Газпромнефть', address: 'ул. Победы, 29', lat: centerLat - 0.01, lon: centerLon - 0.01, status: 'unknown', distance: 2.5 },
+                { id: '3', name: 'Татнефть', address: 'Носовихинское ш., 31в', lat: centerLat + 0.02, lon: centerLon - 0.02, status: 'unavailable', distance: 3.1 },
+                { id: '4', name: 'Роснефть', address: 'ш. Энтузиастов, 56', lat: centerLat - 0.02, lon: centerLon + 0.02, status: 'available', distance: 3.8 },
+                { id: '5', name: 'Shell', address: 'Ленинский пр-т, 125', lat: centerLat + 0.015, lon: centerLon + 0.015, status: 'available', distance: 2.1 },
+                { id: '6', name: 'BP', address: 'Варшавское ш., 95', lat: centerLat - 0.015, lon: centerLon + 0.01, status: 'unknown', distance: 4.2 },
+            ];
+            
+            // Добавляем случайные заправки для реалистичности
+            for (let i = 7; i <= 12; i++) {
+                const offsetLat = (Math.random() - 0.5) * 0.05;
+                const offsetLon = (Math.random() - 0.5) * 0.05;
+                const statuses = ['available', 'unavailable', 'unknown'];
+                const names = ['Лукойл', 'Газпромнефть', 'Татнефть', 'Роснефть', 'Shell'];
+                
+                stations.push({
+                    id: i.toString(),
+                    name: names[Math.floor(Math.random() * names.length)],
+                    address: `ул. Примерная, ${Math.floor(Math.random() * 100)}`,
+                    lat: centerLat + offsetLat,
+                    lon: centerLon + offsetLon,
+                    status: statuses[Math.floor(Math.random() * statuses.length)],
+                    distance: (Math.random() * 5).toFixed(1)
+                });
+            }
+            
+            return stations.sort((a, b) => a.distance - b.distance);
         }
 
         function displayStations(stations) {
@@ -701,6 +821,17 @@
                 return;
             }
 
+            // Обновляем статистику
+            document.getElementById('stat-total').textContent = stations.length;
+            document.getElementById('stat-available').textContent = stations.filter(s => s.status === 'available').length;
+            document.getElementById('stat-distance').textContent = stations[0]?.distance || '0';
+            document.getElementById('stats-bar').style.display = 'grid';
+
+            // Очищаем карту от старых меток
+            if (myMap) {
+                myMap.geoObjects.removeAll();
+            }
+
             stations.forEach((station) => {
                 const card = document.createElement('div');
                 card.className = 'station-item';
@@ -714,10 +845,10 @@
                         <div class="station-name">${station.name}</div>
                         <span class="station-status ${statusClass}">${statusText}</span>
                     </div>
-                    <div class="station-address">📍 ${station.address}</div>
+                    <div class="station-address">📍 ${station.address} (${station.distance} км)</div>
                     <div class="station-actions">
                         <button class="btn-action btn-subscribe" onclick="subscribe('${station.id}', '${station.name}')">
-                            🔔 Подписка
+                             Подписка
                         </button>
                         <button class="btn-action btn-yes" onclick="reportFuel('${station.id}', 'available')">
                             ✅ Есть
@@ -729,21 +860,36 @@
                 `;
                 container.appendChild(card);
 
+                // Добавляем метку на карту
                 if (myMap && station.lat && station.lon) {
                     const color = station.status === 'available' ? 'green' :
                                   station.status === 'unavailable' ? 'red' : 'blue';
                     const placemark = new ymaps.Placemark(
                         [station.lat, station.lon],
-                        { hintContent: station.name, balloonContent: `<b>${station.name}</b><br>${station.address}` },
-                        { preset: `islands#${color}GasStationIcon` }
+                        { 
+                            hintContent: station.name, 
+                            balloonContent: `<b>${station.name}</b><br>${station.address}<br>${statusText}` 
+                        },
+                        { 
+                            preset: `islands#${color}GasStationIcon`,
+                            iconCaption: station.name
+                        }
                     );
                     myMap.geoObjects.add(placemark);
                 }
             });
 
             document.getElementById('stations-list').style.display = 'block';
+            
+            // Если есть метки, показываем их все на карте
             if (stations.length > 0 && myMap) {
-                myMap.setCenter([stations[0].lat, stations[0].lon], 13);
+                const bounds = myMap.geoObjects.getBounds();
+                if (bounds) {
+                    myMap.setBounds(bounds, {
+                        checkZoomRange: true,
+                        zoomMargin: 50
+                    });
+                }
             }
         }
 
@@ -753,6 +899,7 @@
                 return;
             }
             showToast(`✅ Вы подписались на: ${stationName}`, 'success');
+            // Здесь будет отправка на бэкенд
         }
 
         async function reportFuel(stationId, status) {
@@ -760,21 +907,50 @@
                 showToast('Сначала войдите через VK', 'error');
                 return;
             }
+            
             try {
+                // Отправка на бэкенд
                 const response = await fetch(`${BACKEND_URL}/api/report`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ vk_id: userData.id, station_id: stationId, fuel_type: selectedFuel, status })
+                    body: JSON.stringify({ 
+                        vk_id: userData.id, 
+                        station_id: stationId, 
+                        fuel_type: selectedFuel, 
+                        status: status 
+                    })
                 });
+                
                 if (response.ok) {
                     showToast('✅ Спасибо! Ваш отчёт принят.', 'success');
-                    searchStations();
+                    // Обновляем список
+                    if (userCoords) {
+                        searchStationsByCoords(userCoords.lat, userCoords.lon);
+                    }
                 } else {
                     throw new Error();
                 }
             } catch (error) {
                 showToast('✅ Отчёт сохранён (демо)', 'success');
             }
+        }
+
+        function openChat() {
+            // Открываем сообщения сообщества VK
+            vkBridge.send('VKWebAppOpenCommunityMessages', { 
+                group_id: 241157642 // Замени на ID твоего сообщества
+            }).catch(() => {
+                // Если не получилось, показываем альтернативу
+                showToast('Откройте сообщения вручную в VK', 'error');
+            });
+        }
+
+        function getMockStations() {
+            return [
+                { id: '1', name: 'Лукойл', address: 'МКАД 2 км, вл5', lat: 55.752, lon: 37.574, status: 'available' },
+                { id: '2', name: 'Газпромнефть', address: 'ул. Победы, 29', lat: 55.750, lon: 37.572, status: 'unknown' },
+                { id: '3', name: 'Татнефть', address: 'Носовихинское ш., 31в', lat: 55.753, lon: 37.576, status: 'unavailable' }
+            ];
         }
 
         function showToast(message, type = '') {
@@ -785,20 +961,7 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        function openBot() {
-            vkBridge.send('VKWebAppOpenCommunityMessages', { group_id: 241157642 }).catch(() => {
-                showToast('Откройте сообщения вручную', 'error');
-            });
-        }
-
-        function getMockStations(lat = 55.75, lon = 37.85) {
-            return [
-                { id: '1', name: 'Лукойл', address: 'МКАД 2 км, вл5', lat: lat + 0.01, lon: lon + 0.01, status: 'available' },
-                { id: '2', name: 'Газпромнефть', address: 'ул. Победы, 29', lat: lat - 0.01, lon: lon - 0.01, status: 'unknown' },
-                { id: '3', name: 'Татнефть', address: 'Носовихинское ш., 31в', lat: lat + 0.02, lon: lon - 0.02, status: 'unavailable' }
-            ];
-        }
-
+        // Обработка Enter в поле поиска
         document.getElementById('city-input')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') searchStations();
         });
