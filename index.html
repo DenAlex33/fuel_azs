@@ -222,7 +222,7 @@
 
     <script>
         let myMap, selectedFuel = 'ai95', userData = null, userCoords = null, currentFilter = 'distance', stations = [], priceChart = null;
-        
+
         // ⚠️ ВАЖНО: Замени на реальный URL своего сервера!
         // Если бэкенд на сервере, укажи: 'https://твоя-нода.start-ovh.ru:порт'
         // Если тестируешь локально, используй: 'http://localhost:8000' (но это не будет работать из VK Mini App на GitHub)
@@ -270,33 +270,38 @@
 
         // 🆕 УЛУЧШЕННАЯ ИНИЦИАЛИЗАЦИЯ КАРТЫ
         function initMap() {
+            // Проверяем, загрузился ли API Яндекс Карт
+            if (typeof ymaps === 'undefined') {
+                console.error('❌ Яндекс Карты API не загружен');
+                document.getElementById('map-error').style.display = 'block';
+                document.getElementById('map').style.display = 'none';
+                showToast('Карта недоступна', 'error');
+                return;
+            }
+
             try {
                 document.getElementById('map-error').style.display = 'none';
-                
+                document.getElementById('map').style.display = 'block';
+
                 ymaps.ready(function () {
                     try {
-                        myMap = new ymaps.Map("map", {
-                            center: [55.751244, 37.618423],
-                            zoom: 10,
-                            controls: ['zoomControl', 'geolocationControl']
-                        });
-                        
-                        myMap.events.add('error', function(e) {
-                            console.error('Ошибка карты:', e.get('error'));
-                            document.getElementById('map-error').style.display = 'block';
-                        });
-                        
-                        console.log('✅ Карта успешно инициализирована');
+                        if (!myMap) {
+                            myMap = new ymaps.Map("map", {
+                                center: [55.751244, 37.618423],
+                                zoom: 10,
+                                controls: ['zoomControl']
+                            });
+
+                            console.log('✅ Карта успешно инициализирована');
+                        }
                     } catch (err) {
                         console.error('Ошибка создания карты:', err);
                         document.getElementById('map-error').style.display = 'block';
-                        showToast('Не удалось загрузить карту', 'error');
                     }
                 });
             } catch (err) {
-                console.error('Ошибка инициализации Яндекс Карт:', err);
+                console.error('Ошибка инициализации:', err);
                 document.getElementById('map-error').style.display = 'block';
-                showToast('Карта недоступна', 'error');
             }
         }
 
