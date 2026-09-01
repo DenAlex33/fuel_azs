@@ -642,10 +642,17 @@
         }
 
         function openChat() {
-            vkBridge.send('VKWebAppOpenCommunityMessages', {
-                group_id: 241157642
+            const groupId = 241157642; // Твой ID сообщества
+            
+            // Способ 1: Через VK Bridge (открытие сообщений сообщества)
+            vkBridge.send('VKWebAppOpenCommunityMessages', { 
+                group_id: groupId 
+            }).then(() => {
+                console.log('Чат открыт успешно');
             }).catch(() => {
-                alert('Откройте сообщения вручную в VK');
+                // Способ 2: Открыть через URL сообщества
+                const chatUrl = `https://vk.me/fuelazs`; // Замени на свой адрес сообщества
+                window.open(chatUrl, '_blank');
             });
         }
     </script>
