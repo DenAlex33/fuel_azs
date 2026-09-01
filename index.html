@@ -664,7 +664,7 @@
 
         async function useMyLocation() {
             showToast(' Определяем местоположение...', '');
-            
+
             // Пробуем через VK Bridge
             try {
                 const data = await vkBridge.send('VKWebAppGetLocation');
@@ -682,9 +682,9 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        userCoords = { 
-                            lat: position.coords.latitude, 
-                            lon: position.coords.longitude 
+                        userCoords = {
+                            lat: position.coords.latitude,
+                            lon: position.coords.longitude
                         };
                         document.getElementById('city-input').value = 'Моё местоположение';
                         searchStationsByCoords(position.coords.latitude, position.coords.longitude);
@@ -721,7 +721,7 @@
                 }
                 const data = await response.json();
                 const coords = data.response.GeoObjectCollection.featureMember[0]?.GeoObject?.Point?.pos.split(' ');
-                
+
                 if (coords) {
                     const [lon, lat] = coords;
                     await searchStationsByCoords(parseFloat(lat), parseFloat(lon));
@@ -749,7 +749,7 @@
 
                 // Увеличенный радиус поиска - 5 км
                 const radius = 5000; // метров
-                
+
                 // Запрос к бэкенду (если есть)
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/stations/nearby?lat=${lat}&lon=${lon}&radius=${radius}&fuel=${selectedFuel}`);
@@ -785,14 +785,14 @@
                 { id: '5', name: 'Shell', address: 'Ленинский пр-т, 125', lat: centerLat + 0.015, lon: centerLon + 0.015, status: 'available', distance: 2.1 },
                 { id: '6', name: 'BP', address: 'Варшавское ш., 95', lat: centerLat - 0.015, lon: centerLon + 0.01, status: 'unknown', distance: 4.2 },
             ];
-            
+
             // Добавляем случайные заправки для реалистичности
             for (let i = 7; i <= 12; i++) {
                 const offsetLat = (Math.random() - 0.5) * 0.05;
                 const offsetLon = (Math.random() - 0.5) * 0.05;
                 const statuses = ['available', 'unavailable', 'unknown'];
                 const names = ['Лукойл', 'Газпромнефть', 'Татнефть', 'Роснефть', 'Shell'];
-                
+
                 stations.push({
                     id: i.toString(),
                     name: names[Math.floor(Math.random() * names.length)],
@@ -803,7 +803,7 @@
                     distance: (Math.random() * 5).toFixed(1)
                 });
             }
-            
+
             return stations.sort((a, b) => a.distance - b.distance);
         }
 
@@ -866,11 +866,11 @@
                                   station.status === 'unavailable' ? 'red' : 'blue';
                     const placemark = new ymaps.Placemark(
                         [station.lat, station.lon],
-                        { 
-                            hintContent: station.name, 
-                            balloonContent: `<b>${station.name}</b><br>${station.address}<br>${statusText}` 
+                        {
+                            hintContent: station.name,
+                            balloonContent: `<b>${station.name}</b><br>${station.address}<br>${statusText}`
                         },
-                        { 
+                        {
                             preset: `islands#${color}GasStationIcon`,
                             iconCaption: station.name
                         }
@@ -880,7 +880,7 @@
             });
 
             document.getElementById('stations-list').style.display = 'block';
-            
+
             // Если есть метки, показываем их все на карте
             if (stations.length > 0 && myMap) {
                 const bounds = myMap.geoObjects.getBounds();
@@ -907,20 +907,20 @@
                 showToast('Сначала войдите через VK', 'error');
                 return;
             }
-            
+
             try {
                 // Отправка на бэкенд
                 const response = await fetch(`${BACKEND_URL}/api/report`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        vk_id: userData.id, 
-                        station_id: stationId, 
-                        fuel_type: selectedFuel, 
-                        status: status 
+                    body: JSON.stringify({
+                        vk_id: userData.id,
+                        station_id: stationId,
+                        fuel_type: selectedFuel,
+                        status: status
                     })
                 });
-                
+
                 if (response.ok) {
                     showToast('✅ Спасибо! Ваш отчёт принят.', 'success');
                     // Обновляем список
@@ -936,12 +936,19 @@
         }
 
         function openChat() {
-            // Открываем сообщения сообщества VK
-            vkBridge.send('VKWebAppOpenCommunityMessages', { 
-                group_id: 241157642 // Замени на ID твоего сообщества
+            // Пробуем несколько способов открыть чат
+
+            // Способ 1: Через VK Bridge (сообщения сообщества)
+            vkBridge.send('VKWebAppOpenCommunityMessages', {
+                group_id: 241157642
+            }).then(() => {
+                console.log('Chat opened successfully');
             }).catch(() => {
-                // Если не получилось, показываем альтернативу
-                showToast('Откройте сообщения вручную в VK', 'error');
+                // Способ 2: Через открытие ссылки на сообщество
+                vkBridge.send('VKWebAppOpenCodeReader').catch(() => {
+                    // Способ 3: Через открытие URL сообщества
+                    window.open('https://vk.me/fuelazs', '_blank');
+                });
             });
         }
 
