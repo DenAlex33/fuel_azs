@@ -35,46 +35,6 @@
         .icon-btn { width: 40px; height: 40px; border: none; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: var(--transition); }
         .icon-btn:active { transform: scale(0.9); background: var(--border); }
 
-        /* Filters Bar (Avito-style) */
-        .filters-bar {
-            background: var(--card-bg);
-            padding: 12px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            gap: 12px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            position: sticky;
-            top: 61px;
-            z-index: 99;
-        }
-        .filter-chip {
-            padding: 10px 16px;
-            background: var(--bg);
-            border: 1.5px solid var(--border);
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-            cursor: pointer;
-            white-space: nowrap;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .filter-chip:active { transform: scale(0.95); }
-        .filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .filter-chip .count {
-            background: var(--text-secondary);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        .filter-chip.active .count { background: rgba(255,255,255,0.3); }
-
         /* User Bar */
         .user-bar { background: var(--card-bg); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
         .user-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
@@ -122,7 +82,7 @@
         }
         .map-control-btn:active { transform: scale(0.9); }
 
-        /* Side Panel */
+        /* Side Panel - ИСПРАВЛЕНО для мобильных */
         .side-panel {
             position: fixed;
             top: 0;
@@ -139,6 +99,14 @@
             overflow: hidden;
         }
         .side-panel.show { right: 0; }
+        
+        /* На мобильных - на весь экран */
+        @media (max-width: 767px) {
+            .side-panel {
+                max-width: 100%;
+            }
+        }
+        
         .side-panel-overlay {
             position: fixed;
             top: 0;
@@ -408,11 +376,9 @@
             .side-panel { max-width: 450px; }
         }
         @media (max-width: 767px) {
-            .side-panel { display: none; }
             .map-container { height: 40vh; min-height: 300px; }
             .map-controls { bottom: 12px; right: 12px; }
             .map-control-btn { width: 46px; height: 46px; font-size: 20px; }
-            .filters-bar { top: 61px; }
         }
 
         .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
@@ -425,28 +391,10 @@
         <div class="header-content">
             <h1>⛽ Заправки Рядом</h1>
             <div class="header-actions">
-                <button class="icon-btn" onclick="openAddStationModal()">➕</button>
+                <button class="icon-btn" onclick="toggleTheme()" title="Тема">
+                    <span id="header-theme-icon"></span>
+                </button>
             </div>
-        </div>
-    </div>
-
-    <!-- Filters Bar (Avito-style) -->
-    <div class="filters-bar">
-        <div class="filter-chip active" onclick="toggleFilter('region', this)">
-             Регион
-            <span class="count">1337</span>
-        </div>
-        <div class="filter-chip" onclick="toggleFilter('network', this)">
-            🏢 Сеть
-        </div>
-        <div class="filter-chip" onclick="toggleFilter('fuel', this)">
-            ⛽ Топливо
-        </div>
-        <div class="filter-chip" onclick="toggleFilter('availability', this)">
-            ✅ Доступность
-        </div>
-        <div class="filter-chip" onclick="toggleFilter('freshness', this)">
-            🕐 Свежесть
         </div>
     </div>
 
@@ -474,27 +422,33 @@
 
     <div class="map-container">
         <div id="map"></div>
-        
+
         <!-- Map Controls -->
         <div class="map-controls">
             <button class="map-control-btn" id="theme-toggle-btn" onclick="toggleTheme()">
                 <span id="theme-icon">🌙</span>
             </button>
             <button class="map-control-btn" onclick="useMyLocation()">
-                <span></span>
+                <span>📍</span>
             </button>
         </div>
     </div>
 
     <div class="bottom-sheet" id="bottom-sheet">
         <div class="sheet-handle"></div>
+        
+        <!-- Кнопка добавления АЗС в bottom sheet -->
+        <button onclick="openAddStationModal()" class="btn btn-primary" style="margin-bottom: 16px;">
+             Добавить АЗС
+        </button>
+        
         <div class="tabs">
             <button class="tab active" onclick="switchTab('search')">🔍 Поиск</button>
             <button class="tab" onclick="switchTab('favorites')">❤️ Избранное</button>
             <button class="tab" onclick="switchTab('achievements')">🏆 Достижения</button>
         </div>
         <div id="tab-search">
-            <button onclick="useMyLocation()" class="btn btn-primary" style="margin-bottom: 16px;"> Моё местоположение</button>
+            <button onclick="useMyLocation()" class="btn btn-primary" style="margin-bottom: 16px;">📍 Моё местоположение</button>
             <div id="stations-list-mobile"></div>
         </div>
         <div id="tab-favorites" style="display: none;"></div>
@@ -572,7 +526,7 @@
         // Логотипы сетей АЗС (цвета и иконки)
         const STATION_LOGOS = {
             'Лукойл': { color: '#E31E24', icon: 'ЛУК', emoji: '' },
-            'Газпромнефть': { color: '#00A651', icon: 'ГПН', emoji: '🟢' },
+            'Газпромнефть': { color: '#00A651', icon: 'ГПН', emoji: '' },
             'Роснефть': { color: '#0055A5', icon: 'РН', emoji: '🔵' },
             'Татнефть': { color: '#00A651', icon: 'ТН', emoji: '⚪' },
             'Shell': { color: '#FFD500', icon: '🐚', emoji: '🟡' },
@@ -608,11 +562,13 @@
             const isDark = document.body.classList.contains('dark-theme');
             storage.set('theme', isDark ? 'dark' : 'light');
             document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+            document.getElementById('header-theme-icon').textContent = isDark ? '☀️' : '🌙';
             showToast(isDark ? '🌙 Тёмная тема включена' : '☀️ Светлая тема включена');
         }
         if (storage.get('theme') === 'dark') {
             document.body.classList.add('dark-theme');
             document.getElementById('theme-icon').textContent = '☀️';
+            document.getElementById('header-theme-icon').textContent = '️';
         }
 
         vkBridge.send('VKWebAppInit').then(() => vkBridge.send('VKWebAppGetUserInfo')).then((data) => {
@@ -660,13 +616,13 @@
         function renderAchievements() {
             const container = document.getElementById('achievements');
             if (!container) return;
-            const badges = { 'first_report': ' Первый отчёт', '10_reports': ' 10 отчётов', 'helper': '🤝 Помощник', 'explorer': '🗺️ Исследователь' };
+            const badges = { 'first_report': ' Первый отчёт', '10_reports': '🔥 10 отчётов', 'helper': '🤝 Помощник', 'explorer': '🗺️ Исследователь' };
             container.innerHTML = userProfile.achievements.map(a => `<div class="achievement">${badges[a] || a}</div>`).join('');
         }
 
         function initMap() {
             if (typeof ymaps === 'undefined') {
-                console.error('❌ Яндекс Карты API не загружен');
+                console.error(' Яндекс Карты API не загружен');
                 return;
             }
 
@@ -688,21 +644,18 @@
         }
 
         function getStationLogo(stationName) {
-            // Ищем логотип по названию
             for (const [name, logo] of Object.entries(STATION_LOGOS)) {
                 if (stationName.toLowerCase().includes(name.toLowerCase())) {
                     return logo;
                 }
             }
-            // Дефолтный логотип
             return { color: '#667eea', icon: '⛽', emoji: '⚪' };
         }
 
         function createCustomPlacemark(station) {
             const logo = getStationLogo(station.name);
             const hasFuel = Object.values(station.fuels).some(f => f.available);
-            
-            // Создаём SVG иконку с логотипом
+
             const svgContent = `
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
                     <circle cx="24" cy="24" r="22" fill="${logo.color}" stroke="white" stroke-width="2"/>
@@ -710,10 +663,10 @@
                     ${hasFuel ? '<circle cx="36" cy="12" r="6" fill="#34C759" stroke="white" stroke-width="1.5"/>' : '<circle cx="36" cy="12" r="6" fill="#FF3B30" stroke="white" stroke-width="1.5"/>'}
                 </svg>
             `;
-            
+
             const blob = new Blob([svgContent], { type: 'image/svg+xml' });
             const url = URL.createObjectURL(blob);
-            
+
             return new ymaps.Placemark([station.lat, station.lon], {
                 hintContent: `${station.name} - ${station.address}`,
                 balloonContent: `<b>${station.name}</b><br>${station.address}<br>⭐ ${station.rating}`
@@ -736,15 +689,6 @@
                 });
                 myMap.geoObjects.add(placemark);
             });
-        }
-
-        // ================= FILTERS =================
-        function toggleFilter(type, element) {
-            document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
-            element.classList.add('active');
-            
-            // Здесь можно добавить логику фильтрации
-            showToast(`🔍 Фильтр: ${type}`);
         }
 
         // ================= SIDE PANEL =================
@@ -770,7 +714,6 @@
         function renderPanelContent(station) {
             const content = document.getElementById('panel-content');
 
-            // Находим ближайшие АЗС
             const nearbyStations = allStations
                 .filter(s => s.id !== station.id)
                 .map(s => ({
@@ -810,7 +753,6 @@
                 `;
             });
 
-            // Комментарии
             const stationReports = station.reports || [];
             let commentsHtml = '';
             if (stationReports.length > 0) {
@@ -834,10 +776,9 @@
                 });
                 commentsHtml += '</div>';
             } else {
-                commentsHtml = '<div class="comments-section"><div class="comments-title">📋 Последние отчёты</div><div class="loading" style="padding: 20px;">Пока нет отчётов. Будьте первым!</div></div>';
+                commentsHtml = '<div class="comments-section"><div class="comments-title"> Последние отчёты</div><div class="loading" style="padding: 20px;">Пока нет отчётов. Будьте первым!</div></div>';
             }
 
-            // Ближайшие АЗС
             let nearbyHtml = '';
             if (nearbyStations.length > 0) {
                 nearbyHtml = `
@@ -860,7 +801,6 @@
                 `;
             }
 
-            // Информационный блок
             const infoBlock = `
                 <div class="info-block">
                     <div class="info-header" onclick="toggleInfoBlock()">
@@ -879,7 +819,6 @@
                 </div>
             `;
 
-            // Блок подтверждения
             const confirmBlock = `
                 <div class="confirm-block">
                     <div class="confirm-title">Подтвердите данные</div>
@@ -937,7 +876,7 @@
             const content = document.getElementById('panel-content');
             content.innerHTML = `
                 <div class="report-form">
-                    <div class="form-title">📝 Отчёт: ${fuelNames[fuelType]}</div>
+                    <div class="form-title"> Отчёт: ${fuelNames[fuelType]}</div>
                     <div class="form-group">
                         <label class="form-label">Статус топлива</label>
                         <div class="radio-group">
@@ -1241,10 +1180,10 @@
             }
             const userLat = userCoords?.lat || 55.7558;
             const userLon = userCoords?.lon || 37.6173;
-            
+
             const naviUrl = `yandexnavi://build_route_on_map?lat_from=${userLat}&lon_from=${userLon}&lat_to=${lat}&lon_to=${lon}`;
             const mapsUrl = `https://yandex.ru/maps/?rtext=${userLat},${userLon}~${lat},${lon}&rtt=auto`;
-            
+
             vkBridge.send('VKWebAppOpenLink', { link: naviUrl })
                 .then(() => {
                     showToast('🗺️ Открываем Яндекс Навигатор...');
@@ -1252,7 +1191,7 @@
                 .catch(() => {
                     vkBridge.send('VKWebAppOpenLink', { link: mapsUrl })
                         .then(() => {
-                            showToast('️ Открываем Яндекс Карты...');
+                            showToast('🗺️ Открываем Яндекс Карты...');
                         })
                         .catch(() => {
                             window.open(mapsUrl, '_blank');
@@ -1295,7 +1234,7 @@
                     <div class="station-item" onclick="openStationPanel('${station.id}')">
                         <div class="station-item-logo" style="background: ${logo.color}">${logo.icon}</div>
                         <div class="station-item-info">
-                            <div class="station-item-name">${station.name} ⭐ ${station.rating} <span class="favorite-icon">❤️</span></div>
+                            <div class="station-item-name">${station.name}  ${station.rating} <span class="favorite-icon">❤️</span></div>
                             <div class="station-item-address">${station.address}</div>
                         </div>
                     </div>
@@ -1306,16 +1245,16 @@
         function renderAllAchievements() {
             const container = document.getElementById('tab-achievements');
             const allAchievements = [
-                { id: 'first_report', name: ' Первый отчёт', desc: 'Отправьте первый отчёт о топливе', unlocked: userProfile.achievements.includes('first_report') },
-                { id: '10_reports', name: ' 10 отчётов', desc: 'Отправьте 10 отчётов', unlocked: userProfile.achievements.includes('10_reports') },
-                { id: 'helper', name: '🤝 Помощник', desc: 'Помогите 50 пользователям', unlocked: userProfile.achievements.includes('helper') },
-                { id: 'explorer', name: '️ Исследователь', desc: 'Добавьте АЗС на карту', unlocked: userProfile.achievements.includes('explorer') }
+                { id: 'first_report', name: '🎯 Первый отчёт', desc: 'Отправьте первый отчёт о топливе', unlocked: userProfile.achievements.includes('first_report') },
+                { id: '10_reports', name: '🔥 10 отчётов', desc: 'Отправьте 10 отчётов', unlocked: userProfile.achievements.includes('10_reports') },
+                { id: 'helper', name: ' Помощник', desc: 'Помогите 50 пользователям', unlocked: userProfile.achievements.includes('helper') },
+                { id: 'explorer', name: '🗺️ Исследователь', desc: 'Добавьте АЗС на карту', unlocked: userProfile.achievements.includes('explorer') }
             ];
             container.innerHTML = allAchievements.map(a => `
                 <div style="padding: 16px; background: ${a.unlocked ? 'var(--success)' : 'var(--bg)'}; border-radius: 12px; margin-bottom: 12px; color: ${a.unlocked ? 'white' : 'var(--text)'};">
                     <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">${a.name}</div>
                     <div style="font-size: 13px; opacity: 0.9;">${a.desc}</div>
-                    <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">${a.unlocked ? '✅ Получено' : ' Заблокировано'}</div>
+                    <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">${a.unlocked ? '✅ Получено' : '🔒 Заблокировано'}</div>
                 </div>
             `).join('');
         }
