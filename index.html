@@ -62,6 +62,8 @@
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); color: white; margin-top: 10px; }
         .btn-primary:active { background: var(--primary-dark); }
+        .btn-navi { background: #FC3F1D; color: white; margin-top: 10px; }
+        .btn-navi:active { background: #D93619; }
         .fuel-selector { margin-bottom: 20px; }
         .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
         .fuel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -187,7 +189,7 @@
     <div class="bottom-sheet">
         <div class="sheet-handle"></div>
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('search')">🔍 Поиск</button>
+            <button class="tab active" onclick="switchTab('search')"> Поиск</button>
             <button class="tab" onclick="switchTab('favorites')">❤️ Избранное</button>
             <button class="tab" onclick="switchTab('history')">📈 История</button>
             <button class="tab" onclick="switchTab('achievements')">🏆 Достижения</button>
@@ -195,8 +197,8 @@
 
         <div id="tab-search">
             <div class="search-section">
-                <input type="text" id="city-input" class="search-input" placeholder="🔍 Поиск АЗС...">
-                <button onclick="useMyLocation()" class="btn btn-primary">📍 Моё местоположение</button>
+                <input type="text" id="city-input" class="search-input" placeholder=" Поиск АЗС...">
+                <button onclick="useMyLocation()" class="btn btn-primary"> Моё местоположение</button>
             </div>
             <div class="fuel-selector">
                 <div class="section-title">Тип топлива</div>
@@ -211,7 +213,7 @@
                 <div class="section-title">Фильтры</div>
                 <div class="filter-row">
                     <div class="filter-chip active" data-filter="distance" onclick="toggleFilter('distance')">📏 По расстоянию</div>
-                    <div class="filter-chip" data-filter="price" onclick="toggleFilter('price')"> По цене</div>
+                    <div class="filter-chip" data-filter="price" onclick="toggleFilter('price')">💰 По цене</div>
                     <div class="filter-chip" data-filter="available" onclick="toggleFilter('available')">✅ Только с топливом</div>
                 </div>
             </div>
@@ -241,7 +243,6 @@
     <script>
         let myMap, selectedFuel = 'ai95', userData = null, userCoords = null, currentFilter = 'distance', stations = [], priceChart = null;
 
-        // ✅ ИСПРАВЛЕНО: HTTPS вместо HTTP
         const BACKEND_URL = 'https://node1.start-ovh.ru:7240';
 
         const storage = {
@@ -255,7 +256,7 @@
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             storage.set('theme', isDark ? 'dark' : 'light');
-            showToast(isDark ? ' Тёмная тема включена' : '☀️ Светлая тема включена');
+            showToast(isDark ? '🌙 Тёмная тема включена' : '☀️ Светлая тема включена');
         }
         if (storage.get('theme') === 'dark') document.body.classList.add('dark-theme');
 
@@ -272,7 +273,6 @@
             updateUI();
         });
         
-        // Инициализация карты после загрузки DOM
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initMap);
         } else {
@@ -290,19 +290,18 @@
         function renderAchievements() {
             const container = document.getElementById('achievements');
             if (!container) return;
-            const badges = { 'first_report': '🎯 Первый отчёт', '10_reports': '🔥 10 отчётов', 'helper': ' Помощник', 'explorer': '🗺️ Исследователь' };
+            const badges = { 'first_report': '🎯 Первый отчёт', '10_reports': '🔥 10 отчётов', 'helper': '🤝 Помощник', 'explorer': '🗺️ Исследователь' };
             container.innerHTML = userProfile.achievements.map(a => `<div class="achievement">${badges[a] || a}</div>`).join('');
         }
 
-        // ✅ ИСПРАВЛЕНО: Карта отображается сразу
         function initMap() {
             if (typeof ymaps === 'undefined') {
-                console.error(' Яндекс Карты API не загружен');
+                console.error('❌ Яндекс Карты API не загружен');
                 const mapErrorEl = document.getElementById('map-error');
                 const mapEl = document.getElementById('map');
                 if (mapErrorEl) {
                     mapErrorEl.style.display = 'block';
-                    mapErrorEl.innerHTML = '<div style="padding: 20px; background: var(--card-bg); border-radius: 12px; text-align: center;"><div style="font-size: 48px; margin-bottom: 12px;">️</div><div>Карта временно недоступна</div></div>';
+                    mapErrorEl.innerHTML = '<div style="padding: 20px; background: var(--card-bg); border-radius: 12px; text-align: center;"><div style="font-size: 48px; margin-bottom: 12px;">🗺️</div><div>Карта временно недоступна</div></div>';
                 }
                 if (mapEl) mapEl.style.display = 'none';
                 return;
@@ -370,41 +369,108 @@
         }
 
         async function useMyLocation() {
+            console.log('📍 Кнопка "Моё местоположение" нажата');
             showToast('📍 Определяем местоположение...');
+            
             try {
+                console.log(' Запрос геолокации через VK Bridge...');
                 const data = await vkBridge.send('VKWebAppGetLocation');
+                console.log('✅ Получены координаты от VK:', data);
+                
                 if (data && data.lat) { 
                     userCoords = { lat: data.lat, lon: data.lon }; 
-                    searchStationsByCoords(data.lat, data.lon); 
+                    console.log(`🎯 Координаты: ${data.lat}, ${data.lon}`);
+                    showToast(` Найдено: ${data.lat.toFixed(4)}, ${data.lon.toFixed(4)}`);
+                    await searchStationsByCoords(data.lat, data.lon);
+                } else {
+                    throw new Error('Неверный формат координат');
                 }
             } catch (e) {
+                console.error('❌ Ошибка получения геолокации VK:', e);
+                
                 if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition((position) => {
-                        userCoords = { lat: position.coords.latitude, lon: position.coords.longitude };
-                        searchStationsByCoords(position.coords.latitude, position.coords.longitude);
-                    }, () => showToast('Не удалось определить местоположение', 'error'), {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
-                    });
+                    console.log('🔄 Пробуем геолокацию браузера...');
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            console.log('✅ Получены координаты от браузера:', position.coords);
+                            userCoords = { 
+                                lat: position.coords.latitude, 
+                                lon: position.coords.longitude 
+                            };
+                            showToast(`📍 Найдено: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`);
+                            searchStationsByCoords(position.coords.latitude, position.coords.longitude);
+                        }, 
+                        (error) => {
+                            console.error('❌ Ошибка геолокации браузера:', error);
+                            showToast('❌ Не удалось определить местоположение', 'error');
+                        }, 
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        }
+                    );
                 } else {
-                    showToast('Геолокация не поддерживается', 'error');
+                    showToast('❌ Геолокация не поддерживается', 'error');
                 }
             }
         }
 
         async function searchStationsByCoords(lat, lon) {
-            if (myMap) myMap.setCenter([lat, lon], 13);
+            console.log(' Поиск АЗС рядом с координатами:', lat, lon);
+            
+            if (myMap) {
+                console.log('️ Центрируем карту');
+                myMap.setCenter([lat, lon], 13);
+            }
+            
+            const url = `${BACKEND_URL}/api/stations/nearby?lat=${lat}&lon=${lon}&radius=5000&fuel=${selectedFuel}`;
+            console.log(' Запрос к бэкенду:', url);
+            
             try {
-                const response = await fetch(`${BACKEND_URL}/api/stations/nearby?lat=${lat}&lon=${lon}&radius=5000&fuel=${selectedFuel}`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(url, { 
+                    signal: controller.signal,
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                clearTimeout(timeoutId);
+                console.log(' Ответ от бэкенда:', response.status, response.statusText);
+                
                 if (response.ok) { 
-                    stations = await response.json(); 
-                    displayStations(stations); 
+                    const data = await response.json();
+                    console.log('✅ Получено АЗС:', data.length);
+                    console.log('📋 Данные:', data);
+                    
+                    stations = data; 
+                    
+                    if (stations.length > 0) {
+                        displayStations(stations);
+                        showToast(`✅ Найдено ${stations.length} АЗС`);
+                    } else {
+                        showToast('⚠️ АЗС не найдены в радиусе 5 км', 'error');
+                        const container = document.getElementById('stations-content');
+                        if (container) {
+                            container.innerHTML = '<div class="loading">️ В радиусе 5 км АЗС не найдены. Попробуйте выбрать другой тип топлива.</div>';
+                        }
+                    }
                 } else { 
-                    throw new Error(); 
+                    const errorText = await response.text();
+                    console.error('❌ Ошибка бэкенда:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
             } catch (error) {
-                console.warn('Бэкенд недоступен, использую демо-данные');
+                console.error('❌ Ошибка запроса к бэкенду:', error);
+                
+                if (error.name === 'AbortError') {
+                    showToast('⏱️ Превышено время ожидания ответа', 'error');
+                } else {
+                    showToast('⚠️ Ошибка соединения с сервером', 'error');
+                }
+                
+                console.log('📊 Используем демо-данные');
                 stations = getMockStations(lat, lon);
                 displayStations(stations);
             }
@@ -457,7 +523,7 @@
                     ${isFavorite ? '<div class="favorite-badge">❤️</div>' : ''}
                     <div class="station-header">
                         <div class="station-top">
-                            <div class="station-logo">${station.logo || '⛽'}</div>
+                            <div class="station-logo">${station.logo || ''}</div>
                             <div class="station-info">
                                 <div class="station-name">${station.name} ${station.rating ? `⭐ ${station.rating}` : ''}</div>
                                 <div class="station-address">${station.address}</div>
@@ -465,7 +531,7 @@
                             </div>
                         </div>
                         <div class="station-actions">
-                            <button class="btn btn-primary" onclick="navigateTo('${station.address}')">🗺️ Поехали</button>
+                            <button class="btn btn-primary" onclick="navigateTo('${station.address}', ${station.lat}, ${station.lon})">🗺️ Поехали</button>
                             <button class="btn btn-secondary" onclick="toggleFavorite('${station.id}')">${isFavorite ? '💔 Убрать' : '❤️ В избранное'}</button>
                         </div>
                     </div>
@@ -484,7 +550,7 @@
                     </div>
                     <div class="quick-actions">
                         <div class="quick-action" onclick="reportFuel('${station.id}', 'available')">✅ Есть</div>
-                        <div class="quick-action" onclick="reportFuel('${station.id}', 'unavailable')">❌ Нет</div>
+                        <div class="quick-action" onclick="reportFuel('${station.id}', 'unavailable')"> Нет</div>
                         <div class="quick-action" onclick="subscribe('${station.id}')">🔔 Подписка</div>
                     </div>`;
                 container.appendChild(card);
@@ -527,7 +593,7 @@
             favStations.forEach(station => {
                 const card = document.createElement('div');
                 card.className = 'station-card favorite';
-                card.innerHTML = `<div class="favorite-badge">❤️</div><div class="station-header"><div class="station-top"><div class="station-logo">${station.logo || '⛽'}</div><div class="station-info"><div class="station-name">${station.name}</div><div class="station-address">${station.address}</div><div class="station-distance">📍 ${station.distance} км</div></div></div><div class="station-actions"><button class="btn btn-primary" onclick="navigateTo('${station.address}')">🗺️ Поехали</button><button class="btn btn-secondary" onclick="toggleFavorite('${station.id}')"> Убрать</button></div></div>`;
+                card.innerHTML = `<div class="favorite-badge">❤️</div><div class="station-header"><div class="station-top"><div class="station-logo">${station.logo || '⛽'}</div><div class="station-info"><div class="station-name">${station.name}</div><div class="station-address">${station.address}</div><div class="station-distance">📍 ${station.distance} км</div></div></div><div class="station-actions"><button class="btn btn-primary" onclick="navigateTo('${station.address}', ${station.lat}, ${station.lon})">️ Поехали</button><button class="btn btn-secondary" onclick="toggleFavorite('${station.id}')">💔 Убрать</button></div></div>`;
                 container.appendChild(card);
             });
         }
@@ -592,22 +658,11 @@
                             responsive: true, 
                             maintainAspectRatio: false,
                             plugins: { 
-                                legend: { 
-                                    labels: { 
-                                        color: textColor 
-                                    } 
-                                } 
+                                legend: { labels: { color: textColor } } 
                             },
                             scales: {
-                                y: {
-                                    ticks: { color: textColor },
-                                    grid: { color: gridColor },
-                                    beginAtZero: false
-                                },
-                                x: { 
-                                    ticks: { color: textColor }, 
-                                    grid: { color: gridColor } 
-                                }
+                                y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: false },
+                                x: { ticks: { color: textColor }, grid: { color: gridColor } }
                             }
                         }
                     });
@@ -644,7 +699,7 @@
             const container = document.getElementById('achievements-content');
             if (!container) return;
             const allAchievements = [
-                { id: 'first_report', name: '🎯 Первый отчёт', desc: 'Отправьте первый отчёт о топливе', unlocked: userProfile.achievements.includes('first_report') },
+                { id: 'first_report', name: ' Первый отчёт', desc: 'Отправьте первый отчёт о топливе', unlocked: userProfile.achievements.includes('first_report') },
                 { id: '10_reports', name: '🔥 10 отчётов', desc: 'Отправьте 10 отчётов', unlocked: userProfile.achievements.includes('10_reports') },
                 { id: 'helper', name: '🤝 Помощник', desc: 'Помогите 50 пользователям', unlocked: userProfile.achievements.includes('helper') },
                 { id: 'explorer', name: '🗺️ Исследователь', desc: 'Посетите 20 разных АЗС', unlocked: userProfile.achievements.includes('explorer') },
@@ -687,20 +742,37 @@
             addPoints(10);
             if (userProfile.reports === 1) unlockAchievement('first_report');
             if (userProfile.reports === 10) unlockAchievement('10_reports');
-            showToast(status === 'available' ? '✅ Спасибо за отчёт! +10 баллов' : '❌ Отчёт принят. +10 баллов', 'success');
+            showToast(status === 'available' ? '✅ Спасибо за отчёт! +10 баллов' : ' Отчёт принят. +10 баллов', 'success');
         }
 
+        // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ ПОДПИСКИ
         function subscribe(stationId) {
             if (!userData) { 
                 showToast('Сначала войдите через VK', 'error'); 
                 return; 
             }
-            vkBridge.send('VKWebAppSubscribeCommunity', { group_id: 241157642 }).then(() => {
-                showToast(' Вы подписались на уведомления!', 'success'); 
-                addPoints(15);
-            }).catch(() => { 
-                showToast('Подписка оформлена (демо)', 'success'); 
-            });
+            
+            console.log(' Попытка подписки на сообщество...');
+            
+            // Пробуем через VK Bridge
+            vkBridge.send('VKWebAppSubscribeCommunity', { group_id: 241157642 })
+                .then((result) => {
+                    console.log('✅ Подписка оформлена:', result);
+                    showToast('🔔 Вы подписались на уведомления!', 'success');
+                    addPoints(15);
+                })
+                .catch((error) => {
+                    console.error('❌ Ошибка подписки:', error);
+                    // Если не получилось через VK Bridge, открываем группу
+                    vkBridge.send('VKWebAppOpenCommunity', { group_id: 241157642 })
+                        .then(() => {
+                            showToast('📱 Откройте группу и подпишитесь', 'success');
+                        })
+                        .catch(() => {
+                            window.open('https://vk.com/fuelazs', '_blank');
+                            showToast('📱 Откройте группу и подпишитесь', 'success');
+                        });
+                });
         }
 
         function showStationDetails(stationId) {
@@ -734,7 +806,7 @@
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <button class="btn btn-primary" onclick="navigateTo('${station.address}'); closeModal();">🗺️ Навигация</button>
+                    <button class="btn btn-navi" onclick="navigateTo('${station.address}', ${station.lat}, ${station.lon}); closeModal();">🗺️ Навигация</button>
                     <button class="btn btn-secondary" onclick="toggleFavorite('${station.id}'); closeModal();">❤️ Избранное</button>
                 </div>`;
             modal.classList.add('show');
@@ -745,13 +817,44 @@
             if (modal) modal.classList.remove('show'); 
         }
         
-        function navigateTo(address) {
-            const lat = userCoords?.lat || 55.751244;
-            const lon = userCoords?.lon || 37.618423;
+        // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ НАВИГАЦИИ
+        function navigateTo(address, lat, lon) {
+            console.log('🗺️ Навигация к:', address, lat, lon);
             
-            vkBridge.send('VKWebAppOpenLocation', { lat: lat, lon: lon }).catch(() => {
-                window.open(`https://maps.yandex.ru/?text=${encodeURIComponent(address)}`, '_blank');
-            });
+            // Координаты АЗС
+            const destLat = lat || 55.751244;
+            const destLon = lon || 37.618423;
+            
+            // Координаты пользователя
+            const userLat = userCoords?.lat || 55.751244;
+            const userLon = userCoords?.lon || 37.618423;
+            
+            // URL для Яндекс Навигатора
+            const yandexNaviUrl = `yandexnavi://build_route_on_map?lat_from=${userLat}&lon_from=${userLon}&lat_to=${destLat}&lon_to=${destLon}`;
+            
+            // URL для Яндекс Карт (если навигатор не установлен)
+            const yandexMapsUrl = `https://yandex.ru/maps/?rtext=${userLat},${userLon}~${destLat},${destLon}&rtt=auto`;
+            
+            // Пробуем открыть Яндекс Навигатор
+            vkBridge.send('VKWebAppOpenLink', { link: yandexNaviUrl })
+                .then(() => {
+                    console.log('✅ Яндекс Навигатор открыт');
+                    showToast('️ Открываем навигатор...');
+                })
+                .catch(() => {
+                    console.log('⚠️ Навигатор не открылся, пробуем Яндекс Карты');
+                    // Если не получилось, открываем Яндекс Карты
+                    vkBridge.send('VKWebAppOpenLink', { link: yandexMapsUrl })
+                        .then(() => {
+                            console.log('✅ Яндекс Карты открыты');
+                            showToast('🗺️ Открываем Яндекс Карты...');
+                        })
+                        .catch(() => {
+                            console.log('❌ Не удалось открыть карты');
+                            // Последняя попытка - через window.open
+                            window.open(yandexMapsUrl, '_blank');
+                        });
+                });
         }
         
         function openChat() {
