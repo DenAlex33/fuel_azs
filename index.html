@@ -493,7 +493,7 @@
 
         // ================= 4. ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ =================
         let userProfile = storage.get('userProfile', { points: 0, level: 1, achievements: [], reports: 0, favorites: [] });
-        let allStations = []; 
+        let allStations = [];
         let userReports = storage.get('userReports', []);
 
         if (storage.get('theme') === 'dark') {
@@ -675,7 +675,11 @@
                         </div>
                         <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Статус обновлён: ${timeAgo(fuel.updated || Date.now())}</div>
                         <div class="fuel-price-row">
-                            <div><div style="font-size: 13px; color: var(--text-secondary);">Лимит 30 л</div><div style="font-size: 13px; color: var(--text-secondary);">Лимит — 50 л ⓘ</div></div>
+                            <div>
+                                ${fuel.limit_min > 0 ? `<div style="font-size: 13px; color: var(--text-secondary);">Мин. лимит: ${fuel.limit_min} л</div>` : ''}
+                                ${fuel.limit_max > 0 ? `<div style="font-size: 13px; color: var(--text-secondary);">Макс. лимит: ${fuel.limit_max} л ⓘ</div>` : ''}
+                                ${fuel.limit_min === 0 && fuel.limit_max === 0 ? '<div style="font-size: 13px; color: var(--text-secondary);">Лимиты не указаны</div>' : ''}
+                            </div>
                             <div class="fuel-price">${fuel.price.toFixed(2)} ₽</div>
                         </div>
                         <div class="fuel-meta"><span>Отчётов: ${station.reports?.filter(r => r.fuel_type === fuelType).length || 0}</span></div>
@@ -758,9 +762,13 @@
             if (!station) return;
             const fuel = station.fuels[fuelType];
             const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
+
+            const limitMin = fuel.limit_min || 30;
+            const limitMax = fuel.limit_max || 50;
+
             document.getElementById('panel-content').innerHTML = `
                 <div class="report-form">
-                    <div class="form-title">📝 Отчёт: ${fuelNames[fuelType]}</div>
+                    <div class="form-title"> Отчёт: ${fuelNames[fuelType]}</div>
                     <div class="form-group">
                         <label class="form-label">Статус топлива</label>
                         <div class="radio-group">
@@ -768,15 +776,39 @@
                             <div class="radio-option no" onclick="selectReportType(this, 'unavailable')">❌ Нет</div>
                         </div>
                     </div>
-                    <div class="form-group"><label class="form-label">Цена (₽)</label><input type="number" id="report-price" class="form-input" value="${fuel.price}" step="0.01"></div>
+                    <div class="form-group">
+                        <label class="form-label">Цена (₽)</label>
+                        <input type="number" id="report-price" class="form-input" value="${fuel.price}" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Лимиты заправки (литры)</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="font-size: 12px; color: var(--text-secondary);">Минимум</label>
+                                <input type="number" id="report-limit-min" class="form-input" value="${limitMin}" min="0" max="1000">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: var(--text-secondary);">Максимум</label>
+                                <input type="number" id="report-limit-max" class="form-input" value="${limitMax}" min="0" max="1000">
+                            </div>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">
+                            💡 Оставьте пустым или 0, чтобы не указывать лимит
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Очередь</label>
                         <select id="report-queue" class="form-input">
-                            <option value="no_queue">Нет очереди</option><option value="small">Маленькая (1-3 машины)</option>
-                            <option value="medium">Средняя (4-7 машин)</option><option value="large">Большая (8+ машин)</option>
+                            <option value="no_queue">Нет очереди</option>
+                            <option value="small">Маленькая (1-3 машины)</option>
+                            <option value="medium">Средняя (4-7 машин)</option>
+                            <option value="large">Большая (8+ машин)</option>
                         </select>
                     </div>
-                    <div class="form-group"><label class="form-label">Комментарий</label><textarea id="report-comment" class="form-textarea" placeholder="Например: работает только 2 колонки..."></textarea></div>
+                    <div class="form-group">
+                        <label class="form-label">Комментарий</label>
+                        <textarea id="report-comment" class="form-textarea" placeholder="Например: работает только 2 колонки..."></textarea>
+                    </div>
                     <button class="btn btn-success" onclick="submitReport('${stationId}', '${fuelType}')">✅ Отправить отчёт (+10 баллов)</button>
                     <button class="btn" style="background: var(--bg); margin-top: 10px;" onclick="renderPanelContent(allStations.find(s => s.id == '${stationId}'))">← Назад</button>
                 </div>`;
@@ -795,7 +827,15 @@
             const comment = document.getElementById('report-comment').value.trim();
             const isAvailable = document.querySelector('.radio-option.selected')?.textContent.includes('Есть');
 
+            // Получаем лимиты (0 = не указано)
+            const limitMin = parseInt(document.getElementById('report-limit-min').value) || 0;
+            const limitMax = parseInt(document.getElementById('report-limit-max').value) || 0;
+
             if (isNaN(price) || price <= 0) { showToast('❌ Введите корректную цену', 'error'); return; }
+            if (limitMin > 0 && limitMax > 0 && limitMin > limitMax) {
+                showToast(' Минимальный лимит не может быть больше максимального', 'error');
+                return;
+            }
 
             try {
                 showToast('💾 Отправка отчёта...');
@@ -808,6 +848,8 @@
                         fuel_type: fuelType,
                         status: isAvailable ? 'available' : 'unavailable',
                         price: price,
+                        limit_min: limitMin,
+                        limit_max: limitMax,
                         queue: queue,
                         comment: comment
                     })
@@ -961,7 +1003,7 @@
                     })
                 });
                 const result = await response.json();
-                
+
                 if (result.success) {
                     showToast('✅ АЗС добавлена в базу данных! +20 баллов', 'success');
                     addPoints(20);
