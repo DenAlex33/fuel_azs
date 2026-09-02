@@ -477,7 +477,7 @@
 
         function updateFavoriteBadge() {
             const count = userProfile.favorites.length;
-            
+
             const tabBadge = document.getElementById('fav-count');
             if (tabBadge) {
                 tabBadge.textContent = count;
@@ -511,16 +511,36 @@
 
         function initMap() {
             return new Promise((resolve) => {
-                if (typeof ymaps === 'undefined') { resolve(); return; }
-                try {
-                    ymaps.ready(function () {
-                        if (!myMap) {
+                if (typeof ymaps === 'undefined') {
+                    console.warn('API Яндекс.Карт не загружен');
+                    resolve();
+                    return;
+                }
+
+                ymaps.ready(() => {
+                    if (!myMap) {
+                        try {
                             const isDark = document.body.classList.contains('dark-theme');
-                            myMap = new ymaps.Map("map", { center: [55.751244, 37.618423], zoom: 10, controls: ['zoomControl', 'geolocationControl'], type: isDark ? 'yandex#dark' : 'yandex#map' });
+                            myMap = new ymaps.Map("map", {
+                                center: [55.751244, 37.618423],
+                                zoom: 10,
+                                controls: ['zoomControl', 'geolocationControl'],
+                                type: isDark ? 'yandex#dark' : 'yandex#map'
+                            });
+
+                            // Принудительно пересчитываем размеры контейнера, чтобы избежать багов рендера
+                            setTimeout(() => {
+                                if (myMap && myMap.container) {
+                                    myMap.container.fitToViewport();
+                                }
+                            }, 300);
+
+                        } catch (e) {
+                            console.error('Ошибка инициализации карты:', e);
                         }
-                        resolve();
-                    });
-                } catch (err) { resolve(); }
+                    }
+                    resolve();
+                });
             });
         }
 
@@ -569,13 +589,30 @@
         }
 
         function loadStationsOnMap() {
-            if (!myMap) return;
-            myMap.geoObjects.removeAll();
-            allStations.forEach(station => {
-                const placemark = createCustomPlacemark(station);
-                placemark.events.add('click', () => { openStationPanel(station.id); });
-                myMap.geoObjects.add(placemark);
-            });
+            // Строгая проверка: если карта или её модуль геообъектов ещё не готовы, ждём и пробуем снова
+            if (!myMap || !myMap.geoObjects) {
+                console.warn('Карта ещё не полностью инициализирована, повторная попытка...');
+                setTimeout(loadStationsOnMap, 300);
+                return;
+            }
+
+            try {
+                myMap.geoObjects.removeAll();
+
+                // Даём карте 100мс на "дыхание" перед массовым добавлением сотен маркеров
+                setTimeout(() => {
+                    if (!myMap || !myMap.geoObjects) return;
+
+                    allStations.forEach(station => {
+                        const placemark = createCustomPlacemark(station);
+                        placemark.events.add('click', () => { openStationPanel(station.id); });
+                        myMap.geoObjects.add(placemark);
+                    });
+                }, 100);
+
+            } catch (e) {
+                console.error('Ошибка при добавлении АЗС на карту:', e);
+            }
         }
 
         function openStationPanel(stationId) {
@@ -1200,7 +1237,7 @@
             document.getElementById('add-station-panel').classList.add('show');
             document.getElementById('add-station-overlay').classList.add('show');
         }
-        
+
         function closeAddStationModal() {
             document.getElementById('add-station-panel').classList.remove('show');
             document.getElementById('add-station-overlay').classList.remove('show');
