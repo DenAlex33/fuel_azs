@@ -467,7 +467,7 @@
             let fuelsHtml = '';
             Object.entries(station.fuels).forEach(([fuelType, fuel]) => {
                 const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
-                
+
                 // Красивое форматирование лимитов
                 let limitText = 'Лимиты не указаны';
                 const min = fuel.limit_min || 0;
@@ -498,7 +498,7 @@
                 commentsHtml = '<div class="comments-section"><div class="comments-title">📋 Последние отчёты</div>';
                 stationReports.slice(-5).reverse().forEach(report => {
                     commentsHtml += `<div class="comment-item">
-                        <div class="comment-header"><span class="comment-user">${report.fuel_type.toUpperCase()}</span><span class="comment-time">${timeAgo(new Date(report.created_at).getTime())}</span></div>
+                        <div class="comment-header"><span class="comment-user">${report.fuel_type.toUpperCase()}</span><span class="comment-time">${timeAgo(report.created_at)}</span></div>
                         <div class="comment-text">${report.status === 'available' ? '✅ Есть' : '❌ Нет'} | 💰 ${parseFloat(report.price).toFixed(2)} ₽</div>
                         ${report.queue ? `<div class="comment-queue">🚗 ${getQueueText(report.queue)}</div>` : ''}
                         ${report.comment ? `<div class="comment-text" style="margin-top: 8px; font-style: italic;">"${report.comment}"</div>` : ''}
@@ -713,13 +713,26 @@
         }
 
         function timeAgo(timestamp) {
-            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            // Если timestamp это строка (из MySQL), преобразуем её
+            let date;
+            if (typeof timestamp === 'string') {
+                // MySQL формат: "2024-01-15 12:00:00"
+                date = new Date(timestamp + ' UTC');
+            } else {
+                date = new Date(timestamp);
+            }
+
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+
+            if (seconds < 0) return 'только что';
             if (seconds < 60) return 'только что';
             const minutes = Math.floor(seconds / 60);
             if (minutes < 60) return `${minutes} мин назад`;
             const hours = Math.floor(minutes / 60);
             if (hours < 24) return `${hours} ч назад`;
-            return `${Math.floor(hours / 24)} дн назад`;
+            const days = Math.floor(hours / 24);
+            return `${days} дн назад`;
         }
 
         function toggleFavorite(stationId) {
