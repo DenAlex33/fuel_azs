@@ -8,32 +8,35 @@
     <title>Заправки Рядом</title>
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=fb2c860a-11d4-4c8a-9634-414a348a395a&lang=ru_RU" type="text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         :root {
             --primary: #0077FF; --primary-dark: #0055CC; --success: #34C759; --danger: #FF3B30;
             --warning: #FF9500; --bg: #F2F3F8; --card-bg: #FFFFFF; --text: #000000;
             --text-secondary: #8E8E93; --border: #E5E5EA; --shadow: rgba(0, 0, 0, 0.08);
-            --shadow-hover: rgba(0, 0, 0, 0.15); --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         body.dark-theme {
             --bg: #1C1C1E; --card-bg: #2C2C2E; --text: #FFFFFF; --text-secondary: #98989D;
-            --border: #38383A; --shadow: rgba(0, 0, 0, 0.3); --shadow-hover: rgba(0, 0, 0, 0.5);
+            --border: #38383A; --shadow: rgba(0, 0, 0, 0.3);
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg); color: var(--text); min-height: 100vh; padding: 0 0 40px 0; transition: var(--transition);
+            background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; transition: var(--transition);
             overflow-x: hidden; -webkit-font-smoothing: antialiased;
         }
-        .header { background: var(--card-bg); padding: 15px 20px; box-shadow: 0 2px 10px var(--shadow); position: sticky; top: 0; z-index: 100; transition: var(--transition); }
+        
+        /* Header */
+        .header { background: var(--card-bg); padding: 15px 20px; box-shadow: 0 2px 10px var(--shadow); position: sticky; top: 0; z-index: 100; }
         .header-content { display: flex; justify-content: space-between; align-items: center; }
         .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         .header-actions { display: flex; gap: 8px; }
         .icon-btn { width: 40px; height: 40px; border: none; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: var(--transition); }
         .icon-btn:active { transform: scale(0.9); background: var(--border); }
-        .user-bar { background: var(--card-bg); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); transition: var(--transition); }
+        
+        /* User Bar */
+        .user-bar { background: var(--card-bg); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
         .user-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
         .user-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; position: relative; flex-shrink: 0; }
         .user-level { position: absolute; bottom: -2px; right: -2px; background: var(--warning); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 700; }
@@ -42,125 +45,206 @@
         .user-points { text-align: right; flex-shrink: 0; }
         .points-value { font-size: 18px; font-weight: 700; color: var(--warning); }
         .points-label { font-size: 11px; color: var(--text-secondary); }
-        .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; background: var(--card-bg); margin-bottom: 1px; transition: var(--transition); }
-        .stat-item { text-align: center; padding: 12px; background: var(--bg); border-radius: 12px; transition: var(--transition); }
+        
+        /* Stats Bar */
+        .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; background: var(--card-bg); margin-bottom: 1px; }
+        .stat-item { text-align: center; padding: 12px; background: var(--bg); border-radius: 12px; }
         .stat-value { font-size: 24px; font-weight: 700; color: var(--primary); }
         .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
-        .map-container { height: 40vh; min-height: 300px; position: relative; background: #e5e5e5; border-radius: 0 0 20px 20px; overflow: hidden; }
+        
+        /* Map */
+        .map-container { height: 50vh; min-height: 350px; position: relative; background: #e5e5e5; }
         #map { width: 100%; height: 100%; }
-        .bottom-sheet { background: var(--card-bg); border-radius: 20px 20px 0 0; margin-top: -20px; padding: 20px; box-shadow: 0 -4px 20px var(--shadow); max-height: 60vh; overflow-y: auto; transition: var(--transition); -webkit-overflow-scrolling: touch; }
-        .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
-        .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
-        .tab { padding: 10px 16px; background: var(--bg); border: none; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: var(--transition); }
-        .tab.active { background: var(--primary); color: white; }
-        .tab:active { transform: scale(0.95); }
-        .search-section { margin-bottom: 20px; }
-        .search-input { width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; outline: none; background: var(--bg); color: var(--text); transition: var(--transition); }
-        .search-input:focus { border-color: var(--primary); background: var(--card-bg); }
+        
+        /* Side Panel (Avito-style) */
+        .side-panel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            background: var(--card-bg);
+            box-shadow: -4px 0 20px var(--shadow);
+            z-index: 1000;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .side-panel.show { right: 0; }
+        .side-panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        .side-panel-overlay.show { opacity: 1; visibility: visible; }
+        
+        .panel-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background: var(--gradient);
+            color: white;
+        }
+        .panel-header-content { flex: 1; }
+        .panel-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .panel-address { font-size: 14px; opacity: 0.9; line-height: 1.4; }
+        .panel-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        .panel-close:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.3); }
+        
+        .panel-content { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        /* Fuel Cards (Avito-style) */
+        .fuel-card {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 2px solid var(--border);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .fuel-card:active { transform: scale(0.98); background: var(--card-bg); }
+        .fuel-card.available { border-color: var(--success); }
+        .fuel-card.unavailable { border-color: var(--danger); opacity: 0.7; }
+        
+        .fuel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .fuel-type { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .fuel-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .fuel-status.available { background: rgba(52, 199, 89, 0.15); color: var(--success); }
+        .fuel-status.unavailable { background: rgba(255, 59, 48, 0.15); color: var(--danger); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+        
+        .fuel-price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .fuel-price { font-size: 28px; font-weight: 700; color: var(--text); }
+        .fuel-price-label { font-size: 14px; color: var(--text-secondary); }
+        
+        .fuel-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
+        .fuel-updated::before { content: "🕐 "; }
+        .fuel-reports::before { content: " "; }
+        
+        /* Report Form */
+        .report-form { background: var(--bg); border-radius: 16px; padding: 16px; margin-top: 20px; }
+        .form-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+        .form-input { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; outline: none; background: var(--card-bg); color: var(--text); transition: var(--transition); }
+        .form-input:focus { border-color: var(--primary); }
+        .form-textarea { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; outline: none; background: var(--card-bg); color: var(--text); transition: var(--transition); resize: vertical; min-height: 80px; font-family: inherit; }
+        .form-textarea:focus { border-color: var(--primary); }
+        
+        .radio-group { display: flex; gap: 12px; }
+        .radio-option { flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: var(--transition); background: var(--card-bg); font-weight: 600; }
+        .radio-option:active { transform: scale(0.95); }
+        .radio-option.selected { border-color: var(--success); background: var(--success); color: white; }
+        .radio-option.selected.no { border-color: var(--danger); background: var(--danger); }
+        
         .btn { padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition); width: 100%; }
         .btn:active { transform: scale(0.98); }
-        .btn-primary { background: var(--primary); color: white; margin-top: 10px; }
-        .btn-primary:active { background: var(--primary-dark); }
-        .btn-success { background: var(--success); color: white; margin-top: 10px; }
-        .btn-danger { background: var(--danger); color: white; margin-top: 10px; }
-        .fuel-selector { margin-bottom: 20px; }
-        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
-        .fuel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .fuel-card { padding: 12px; border: 2px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: var(--transition); background: var(--card-bg); }
-        .fuel-card:active { transform: scale(0.95); }
-        .fuel-card.active { border-color: var(--primary); background: var(--primary); color: white; }
-        .fuel-card .fuel-num { font-weight: 700; font-size: 18px; }
-        .fuel-card .fuel-name { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
-        .fuel-card.active .fuel-name { color: rgba(255, 255, 255, 0.9); }
-        .filters-section { margin-bottom: 20px; }
-        .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
-        .filter-chip { padding: 8px 14px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 20px; font-size: 13px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px; }
-        .filter-chip.active { background: var(--primary); border-color: var(--primary); color: white; }
-        .filter-chip:active { transform: scale(0.95); }
-        .station-card { background: var(--card-bg); border-radius: 16px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 12px var(--shadow); transition: var(--transition); position: relative; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .station-card:active { transform: scale(0.98); }
-        .station-card.favorite { border: 2px solid var(--warning); }
-        .favorite-badge { position: absolute; top: 12px; right: 12px; background: var(--warning); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; z-index: 10; }
-        .station-header { padding: 16px; border-bottom: 1px solid var(--border); }
-        .station-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
-        .station-logo { width: 48px; height: 48px; border-radius: 12px; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; flex-shrink: 0; }
-        .station-info { flex: 1; min-width: 0; }
-        .station-name { font-size: 17px; font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .station-address { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
-        .station-distance { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
-        .station-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-        .fuel-list { padding: 16px; }
-        .fuel-item { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; transition: var(--transition); cursor: pointer; }
-        .fuel-item:active { background: var(--bg); }
-        .fuel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .fuel-name { font-size: 16px; font-weight: 600; }
-        .fuel-status { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .status-dot.unavailable { background: var(--danger); }
-        .status-dot.available { background: var(--success); }
-        .fuel-meta { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
-        .fuel-footer { display: flex; justify-content: space-between; align-items: center; }
-        .fuel-limit { font-size: 13px; color: var(--text-secondary); }
-        .fuel-price { font-size: 20px; font-weight: 700; color: var(--text); }
-        .price-change { font-size: 12px; margin-left: 8px; }
-        .price-up { color: var(--danger); }
-        .price-down { color: var(--success); }
-        .chart-container { padding: 16px; height: 200px; margin-top: 12px; }
-        .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
-        .achievement { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: linear-gradient(135deg, #FFD700, #FFA500); color: white; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 4px; animation: popIn 0.3s ease-out; }
-        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--card-bg); padding: 14px 24px; border-radius: 12px; font-size: 14px; font-weight: 500; z-index: 2000; opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); text-align: center; max-width: 90%; box-shadow: 0 8px 30px var(--shadow-hover); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-primary { background: var(--primary); color: white; }
+        
+        /* Comments Section */
+        .comments-section { margin-top: 20px; }
+        .comments-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+        .comment-item { background: var(--bg); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .comment-user { font-size: 13px; font-weight: 600; }
+        .comment-time { font-size: 12px; color: var(--text-secondary); }
+        .comment-text { font-size: 14px; color: var(--text); line-height: 1.4; }
+        .comment-queue { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+        
+        /* Action Buttons */
+        .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .btn-large { padding: 16px; font-size: 16px; }
+        
+        /* Bottom Sheet for Mobile */
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            box-shadow: 0 -4px 20px var(--shadow);
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .bottom-sheet.show { transform: translateY(0); }
+        .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+        .tab { padding: 10px 16px; background: var(--bg); border: none; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: var(--transition); }
+        .tab.active { background: var(--primary); color: white; }
+        
+        /* Station List */
+        .station-list { padding: 20px; }
+        .station-item { background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px var(--shadow); cursor: pointer; transition: var(--transition); }
+        .station-item:active { transform: scale(0.98); }
+        .station-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .station-item-name { font-size: 17px; font-weight: 700; }
+        .station-item-distance { font-size: 13px; color: var(--text-secondary); }
+        .station-item-address { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+        .station-item-fuel { display: flex; gap: 8px; flex-wrap: wrap; }
+        .fuel-tag { padding: 6px 12px; background: var(--bg); border-radius: 8px; font-size: 13px; font-weight: 600; }
+        .fuel-tag.available { background: rgba(52, 199, 89, 0.15); color: var(--success); }
+        
+        /* Toast */
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--card-bg); padding: 14px 24px; border-radius: 12px; font-size: 14px; font-weight: 500; z-index: 2000; opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); text-align: center; max-width: 90%; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.success { background: var(--success); color: white; }
         .toast.error { background: var(--danger); color: white; }
-        .pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(0, 119, 255, 0.4); } 50% { box-shadow: 0 0 0 10px rgba(0, 119, 255, 0); } }
-        .quick-actions { display: flex; gap: 8px; padding: 12px 16px; background: var(--bg); border-top: 1px solid var(--border); }
-        .quick-action { flex: 1; padding: 10px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; text-align: center; font-size: 12px; cursor: pointer; transition: var(--transition); }
-        .quick-action:active { transform: scale(0.95); background: var(--border); }
-        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); display: none; align-items: flex-end; justify-content: center; z-index: 1000; }
-        .modal.show { display: flex; }
-        .modal-content { background: var(--card-bg); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 80vh; overflow-y: auto; animation: slideUp 0.3s ease-out; -webkit-overflow-scrolling: touch; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .form-group { margin-bottom: 16px; }
-        .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
-        .form-input { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; outline: none; background: var(--bg); color: var(--text); transition: var(--transition); }
-        .form-input:focus { border-color: var(--primary); background: var(--card-bg); }
-        .form-textarea { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; outline: none; background: var(--bg); color: var(--text); transition: var(--transition); resize: vertical; min-height: 80px; font-family: inherit; }
-        .form-textarea:focus { border-color: var(--primary); background: var(--card-bg); }
-        .radio-group { display: flex; gap: 12px; }
-        .radio-option { flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: var(--transition); background: var(--card-bg); }
-        .radio-option:active { transform: scale(0.95); }
-        .radio-option.selected { border-color: var(--primary); background: var(--primary); color: white; }
-        .report-item { background: var(--bg); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
-        .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .report-user { font-size: 13px; font-weight: 600; }
-        .report-time { font-size: 12px; color: var(--text-secondary); }
-        .report-content { font-size: 14px; color: var(--text); }
-        .report-actions { display: flex; gap: 8px; margin-top: 8px; }
-        .report-btn { padding: 6px 12px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; cursor: pointer; transition: var(--transition); }
-        .report-btn:active { transform: scale(0.95); }
-        .report-btn.liked { background: var(--primary); color: white; border-color: var(--primary); }
         
-        @media (max-width: 600px) {
-            .fuel-grid { grid-template-columns: repeat(2, 1fr); }
-            .header h1 { font-size: 18px; }
-            .stats-bar { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-            .stat-item { padding: 8px; }
-            .stat-value { font-size: 20px; }
-            .map-container { height: 35vh; min-height: 250px; }
-            .bottom-sheet { padding: 16px; }
-            .station-actions { grid-template-columns: 1fr; }
-            .quick-actions { flex-wrap: wrap; }
-            .quick-action { flex: 1 1 calc(50% - 4px); min-width: 100px; }
+        /* Responsive */
+        @media (min-width: 768px) {
+            .bottom-sheet { display: none; }
+            .side-panel { max-width: 450px; }
+        }
+        @media (max-width: 767px) {
+            .side-panel { display: none; }
+            .map-container { height: 40vh; min-height: 300px; }
         }
         
-        @media (max-width: 400px) {
-            .fuel-grid { grid-template-columns: repeat(2, 1fr); }
-            .user-name { font-size: 14px; }
-            .points-value { font-size: 16px; }
-        }
+        .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+        .achievement { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: linear-gradient(135deg, #FFD700, #FFA500); color: white; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 4px; animation: popIn 0.3s ease-out; }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -168,8 +252,8 @@
         <div class="header-content">
             <h1>⛽ Заправки Рядом</h1>
             <div class="header-actions">
-                <button class="icon-btn" onclick="toggleTheme()" title="Тема"></button>
-                <button class="icon-btn" onclick="openAddStationModal()" title="Добавить АЗС">➕</button>
+                <button class="icon-btn" onclick="toggleTheme()">🌙</button>
+                <button class="icon-btn" onclick="openAddStationModal()">➕</button>
             </div>
         </div>
     </div>
@@ -190,89 +274,96 @@
 
     <div id="achievements" style="padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 4px;"></div>
 
-    <div class="stats-bar" id="stats-bar">
+    <div class="stats-bar">
         <div class="stat-item"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Всего АЗС</div></div>
         <div class="stat-item"><div class="stat-value" id="stat-available">0</div><div class="stat-label">Есть топливо</div></div>
         <div class="stat-item"><div class="stat-value" id="stat-reports">0</div><div class="stat-label">Отчётов</div></div>
     </div>
 
-    <div class="map-container" id="map-container">
+    <div class="map-container">
         <div id="map"></div>
     </div>
 
-    <div class="bottom-sheet">
+    <div class="bottom-sheet" id="bottom-sheet">
         <div class="sheet-handle"></div>
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('search')"> Поиск</button>
+            <button class="tab active" onclick="switchTab('search')">🔍 Поиск</button>
             <button class="tab" onclick="switchTab('favorites')">❤️ Избранное</button>
-            <button class="tab" onclick="switchTab('history')">📈 История</button>
             <button class="tab" onclick="switchTab('achievements')">🏆 Достижения</button>
         </div>
-
         <div id="tab-search">
-            <div class="search-section">
-                <input type="text" id="city-input" class="search-input" placeholder=" Поиск АЗС...">
-                <button onclick="useMyLocation()" class="btn btn-primary">📍 Моё местоположение</button>
+            <button onclick="useMyLocation()" class="btn btn-primary" style="margin-bottom: 16px;">📍 Моё местоположение</button>
+            <div id="stations-list-mobile"></div>
+        </div>
+        <div id="tab-favorites" style="display: none;"></div>
+        <div id="tab-achievements" style="display: none;"></div>
+    </div>
+
+    <!-- Side Panel (Avito-style) -->
+    <div class="side-panel-overlay" id="panel-overlay" onclick="closeSidePanel()"></div>
+    <div class="side-panel" id="side-panel">
+        <div class="panel-header">
+            <div class="panel-header-content">
+                <div class="panel-title" id="panel-station-name">АЗС</div>
+                <div class="panel-address" id="panel-station-address">Адрес</div>
             </div>
-            <div class="fuel-selector">
-                <div class="section-title">Тип топлива</div>
-                <div class="fuel-grid">
-                    <div class="fuel-card" data-fuel="ai92" onclick="selectFuel('ai92')"><div class="fuel-num">92</div><div class="fuel-name">АИ-92</div></div>
-                    <div class="fuel-card active" data-fuel="ai95" onclick="selectFuel('ai95')"><div class="fuel-num">95</div><div class="fuel-name">АИ-95</div></div>
-                    <div class="fuel-card" data-fuel="ai100" onclick="selectFuel('ai100')"><div class="fuel-num">100</div><div class="fuel-name">АИ-100</div></div>
-                    <div class="fuel-card" data-fuel="dt" onclick="selectFuel('dt')"><div class="fuel-num">ДТ</div><div class="fuel-name">Дизель</div></div>
+            <button class="panel-close" onclick="closeSidePanel()">✕</button>
+        </div>
+        <div class="panel-content" id="panel-content">
+            <!-- Content will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Add Station Modal -->
+    <div class="side-panel-overlay" id="add-station-overlay" onclick="closeAddStationModal()"></div>
+    <div class="side-panel" id="add-station-panel">
+        <div class="panel-header">
+            <div class="panel-header-content">
+                <div class="panel-title">➕ Добавить АЗС</div>
+                <div class="panel-address">Помогите другим водителям!</div>
+            </div>
+            <button class="panel-close" onclick="closeAddStationModal()">✕</button>
+        </div>
+        <div class="panel-content">
+            <div class="form-group">
+                <label class="form-label">Название АЗС</label>
+                <input type="text" id="new-station-name" class="form-input" placeholder="Например: Лукойл">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Адрес</label>
+                <input type="text" id="new-station-address" class="form-input" placeholder="Введите адрес">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Координаты (широта, долгота)</label>
+                <input type="text" id="new-station-coords" class="form-input" placeholder="55.751244, 37.618423">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Доступное топливо</label>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg); border-radius: 12px; cursor: pointer;">
+                        <input type="checkbox" id="fuel-ai92" checked> АИ-92
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg); border-radius: 12px; cursor: pointer;">
+                        <input type="checkbox" id="fuel-ai95" checked> АИ-95
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg); border-radius: 12px; cursor: pointer;">
+                        <input type="checkbox" id="fuel-ai100"> АИ-100
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg); border-radius: 12px; cursor: pointer;">
+                        <input type="checkbox" id="fuel-dt" checked> Дизель
+                    </label>
                 </div>
             </div>
-            <div class="filters-section">
-                <div class="section-title">Фильтры</div>
-                <div class="filter-row">
-                    <div class="filter-chip active" data-filter="distance" onclick="toggleFilter('distance')">📏 По расстоянию</div>
-                    <div class="filter-chip" data-filter="price" onclick="toggleFilter('price')">💰 По цене</div>
-                    <div class="filter-chip" data-filter="available" onclick="toggleFilter('available')">✅ Только с топливом</div>
-                </div>
-            </div>
-            <div id="stations-content"><div class="loading">Нажмите "Моё местоположение" для поиска</div></div>
+            <button class="btn btn-success" onclick="submitNewStation()">✅ Добавить АЗС (+20 баллов)</button>
         </div>
-
-        <div id="tab-favorites" style="display: none;">
-            <div class="section-title">Избранные АЗС</div>
-            <div id="favorites-content"><div class="loading">У вас пока нет избранных АЗС</div></div>
-        </div>
-
-        <div id="tab-history" style="display: none;">
-            <div class="section-title">История цен</div>
-            <div class="chart-container"><canvas id="priceChart"></canvas></div>
-            <div id="history-content" style="padding: 16px;"></div>
-        </div>
-
-        <div id="tab-achievements" style="display: none;">
-            <div class="section-title">Ваши достижения</div>
-            <div id="achievements-content" style="padding: 16px;"></div>
-        </div>
-    </div>
-
-    <!-- Модальное окно для отчёта -->
-    <div class="modal" id="report-modal">
-        <div class="modal-content" id="report-modal-content"></div>
-    </div>
-
-    <!-- Модальное окно для добавления АЗС -->
-    <div class="modal" id="add-station-modal">
-        <div class="modal-content" id="add-station-modal-content"></div>
-    </div>
-
-    <!-- Модальное окно деталей станции -->
-    <div class="modal" id="station-modal">
-        <div class="modal-content" id="station-modal-content"></div>
     </div>
 
     <div id="toast" class="toast"></div>
 
     <script>
         // ================= ДАННЫЕ =================
-        let myMap, selectedFuel = 'ai95', userData = null, userCoords = null, currentFilter = 'distance', stations = [], priceChart = null;
+        let myMap, userData = null, userCoords = null, stations = [], priceChart = null, selectedStation = null;
         
-        // Демо-данные АЗС (Москва и область)
         const DEMO_STATIONS = [
             { id: '1', name: 'Лукойл', address: 'МКАД 2 км, вл5', lat: 55.752, lon: 37.574, fuels: { ai92: { price: 63.99, available: true, updated: Date.now() - 300000 }, ai95: { price: 69.69, available: true, updated: Date.now() - 300000 }, ai100: { price: 79.99, available: true, updated: Date.now() - 300000 }, dt: { price: 75.50, available: true, updated: Date.now() - 300000 } }, reports: [], rating: 4.8 },
             { id: '2', name: 'Газпромнефть', address: 'ул. Победы, 29, Реутов', lat: 55.759, lon: 37.860, fuels: { ai92: { price: 64.50, available: true, updated: Date.now() - 600000 }, ai95: { price: 70.20, available: false, updated: Date.now() - 600000 }, ai100: { price: 80.50, available: true, updated: Date.now() - 600000 }, dt: { price: 76.00, available: true, updated: Date.now() - 600000 } }, reports: [], rating: 4.5 },
@@ -286,20 +377,11 @@
             { id: '10', name: 'Татнефть', address: 'Тверская ул., 20', lat: 55.760, lon: 37.600, fuels: { ai92: { price: 64.10, available: true, updated: Date.now() - 3000000 }, ai95: { price: 69.90, available: true, updated: Date.now() - 3000000 }, ai100: { price: 80.10, available: true, updated: Date.now() - 3000000 }, dt: { price: 75.70, available: true, updated: Date.now() - 3000000 } }, reports: [], rating: 4.7 }
         ];
 
-        // LocalStorage helpers
         const storage = {
-            get: (key, defaultValue) => { 
-                try { 
-                    const item = localStorage.getItem(key); 
-                    return item ? JSON.parse(item) : defaultValue; 
-                } catch { return defaultValue; } 
-            },
-            set: (key, value) => { 
-                try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error('Storage error:', e); } 
-            }
+            get: (key, defaultValue) => { try { const item = localStorage.getItem(key); return item ? JSON.parse(item) : defaultValue; } catch { return defaultValue; } },
+            set: (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error('Storage error:', e); } }
         };
 
-        // Инициализация данных
         let userProfile = storage.get('userProfile', { points: 0, level: 1, achievements: [], reports: 0, favorites: [] });
         let allStations = storage.get('allStations', DEMO_STATIONS);
         let userReports = storage.get('userReports', []);
@@ -358,7 +440,7 @@
         function renderAchievements() {
             const container = document.getElementById('achievements');
             if (!container) return;
-            const badges = { 'first_report': ' Первый отчёт', '10_reports': '🔥 10 отчётов', 'helper': '🤝 Помощник', 'explorer': '🗺️ Исследователь' };
+            const badges = { 'first_report': '🎯 Первый отчёт', '10_reports': '🔥 10 отчётов', 'helper': '🤝 Помощник', 'explorer': '🗺️ Исследователь' };
             container.innerHTML = userProfile.achievements.map(a => `<div class="achievement">${badges[a] || a}</div>`).join('');
         }
 
@@ -370,18 +452,14 @@
 
             try {
                 ymaps.ready(function () {
-                    try {
-                        if (!myMap) {
-                            myMap = new ymaps.Map("map", {
-                                center: [55.751244, 37.618423],
-                                zoom: 10,
-                                controls: ['zoomControl', 'geolocationControl']
-                            });
-                            console.log('✅ Карта успешно инициализирована');
-                            loadStationsOnMap();
-                        }
-                    } catch (err) {
-                        console.error('Ошибка создания карты:', err);
+                    if (!myMap) {
+                        myMap = new ymaps.Map("map", {
+                            center: [55.751244, 37.618423],
+                            zoom: 10,
+                            controls: ['zoomControl', 'geolocationControl']
+                        });
+                        console.log('✅ Карта успешно инициализирована');
+                        loadStationsOnMap();
                     }
                 });
             } catch (err) {
@@ -395,47 +473,214 @@
             
             allStations.forEach(station => {
                 const hasFuel = Object.values(station.fuels).some(f => f.available);
-                myMap.geoObjects.add(new ymaps.Placemark([station.lat, station.lon], {
+                const placemark = new ymaps.Placemark([station.lat, station.lon], {
                     hintContent: station.name,
                     balloonContent: `<b>${station.name}</b><br>${station.address}<br>⭐ ${station.rating}`
                 }, {
                     preset: hasFuel ? 'islands#greenGasStationIcon' : 'islands#redGasStationIcon'
-                }));
+                });
+                
+                placemark.events.add('click', () => {
+                    openStationPanel(station.id);
+                });
+                
+                myMap.geoObjects.add(placemark);
             });
+        }
+
+        // ================= SIDE PANEL =================
+        function openStationPanel(stationId) {
+            const station = allStations.find(s => s.id === stationId);
+            if (!station) return;
+            
+            selectedStation = station;
+            document.getElementById('panel-station-name').textContent = `${station.name} ⭐ ${station.rating}`;
+            document.getElementById('panel-station-address').textContent = station.address;
+            
+            renderPanelContent(station);
+            
+            document.getElementById('side-panel').classList.add('show');
+            document.getElementById('panel-overlay').classList.add('show');
+        }
+
+        function closeSidePanel() {
+            document.getElementById('side-panel').classList.remove('show');
+            document.getElementById('panel-overlay').classList.remove('show');
+        }
+
+        function renderPanelContent(station) {
+            const content = document.getElementById('panel-content');
+            
+            let fuelsHtml = '';
+            Object.entries(station.fuels).forEach(([fuelType, fuel]) => {
+                const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
+                fuelsHtml += `
+                    <div class="fuel-card ${fuel.available ? 'available' : 'unavailable'}" onclick="openReportForm('${station.id}', '${fuelType}')">
+                        <div class="fuel-header">
+                            <div class="fuel-type">${fuelNames[fuelType]}</div>
+                            <div class="fuel-status ${fuel.available ? 'available' : 'unavailable'}">
+                                <span class="status-dot"></span>
+                                ${fuel.available ? 'Доступно' : 'Нет'}
+                            </div>
+                        </div>
+                        <div class="fuel-price-row">
+                            <div class="fuel-price">${fuel.price.toFixed(2)} ₽</div>
+                            <div class="fuel-price-label">за литр</div>
+                        </div>
+                        <div class="fuel-meta">
+                            <span class="fuel-updated">Обновлено: ${timeAgo(fuel.updated)}</span>
+                            <span class="fuel-reports">Отчётов: ${station.reports?.filter(r => r.fuelType === fuelType).length || 0}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Comments section
+            const stationReports = station.reports || [];
+            let commentsHtml = '';
+            if (stationReports.length > 0) {
+                const recentReports = stationReports.slice(-5).reverse();
+                commentsHtml = '<div class="comments-section"><div class="comments-title"> Последние отчёты</div>';
+                recentReports.forEach(report => {
+                    commentsHtml += `
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span class="comment-user">${report.fuelType.toUpperCase()}</span>
+                                <span class="comment-time">${timeAgo(report.timestamp)}</span>
+                            </div>
+                            <div class="comment-text">
+                                ${report.status === 'available' ? '✅ Есть топливо' : '❌ Нет топлива'}<br>
+                                💰 Цена: ${report.price.toFixed(2)} ₽
+                            </div>
+                            ${report.queue ? `<div class="comment-queue">🚗 Очередь: ${getQueueText(report.queue)}</div>` : ''}
+                            ${report.comment ? `<div class="comment-text" style="margin-top: 8px; font-style: italic;">"${report.comment}"</div>` : ''}
+                        </div>
+                    `;
+                });
+                commentsHtml += '</div>';
+            } else {
+                commentsHtml = '<div class="comments-section"><div class="comments-title"> Последние отчёты</div><div class="loading" style="padding: 20px;">Пока нет отчётов. Будьте первым!</div></div>';
+            }
+            
+            content.innerHTML = `
+                ${fuelsHtml}
+                ${commentsHtml}
+                <div class="action-buttons">
+                    <button class="btn btn-primary btn-large" onclick="navigateTo('${station.address}', ${station.lat}, ${station.lon})">🗺️ Поехали</button>
+                    <button class="btn btn-danger btn-large" onclick="toggleFavorite('${station.id}')">❤️ В избранное</button>
+                </div>
+            `;
+        }
+
+        function getQueueText(queue) {
+            const queues = { no_queue: 'Нет очереди', small: '1-3 машины', medium: '4-7 машин', large: '8+ машин' };
+            return queues[queue] || queue;
+        }
+
+        function openReportForm(stationId, fuelType) {
+            const station = allStations.find(s => s.id === stationId);
+            if (!station) return;
+            
+            const fuel = station.fuels[fuelType];
+            const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
+            
+            const content = document.getElementById('panel-content');
+            content.innerHTML = `
+                <div class="report-form">
+                    <div class="form-title">📝 Отчёт: ${fuelNames[fuelType]}</div>
+                    <div class="form-group">
+                        <label class="form-label">Статус топлива</label>
+                        <div class="radio-group">
+                            <div class="radio-option selected" onclick="selectReportType(this, 'available')">✅ Есть</div>
+                            <div class="radio-option no" onclick="selectReportType(this, 'unavailable')">❌ Нет</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Цена (₽)</label>
+                        <input type="number" id="report-price" class="form-input" value="${fuel.price}" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Очередь</label>
+                        <select id="report-queue" class="form-input">
+                            <option value="no_queue">Нет очереди</option>
+                            <option value="small">Маленькая (1-3 машины)</option>
+                            <option value="medium">Средняя (4-7 машин)</option>
+                            <option value="large">Большая (8+ машин)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Комментарий</label>
+                        <textarea id="report-comment" class="form-textarea" placeholder="Например: работает только 2 колонки, чистый туалет..."></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="submitReport('${stationId}', '${fuelType}')">✅ Отправить отчёт (+10 баллов)</button>
+                    <button class="btn" style="background: var(--bg); margin-top: 10px;" onclick="renderPanelContent(allStations.find(s => s.id === '${stationId}'))">← Назад</button>
+                </div>
+            `;
+        }
+
+        function selectReportType(element, type) {
+            document.querySelectorAll('.radio-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function submitReport(stationId, fuelType) {
+            const station = allStations.find(s => s.id === stationId);
+            if (!station) return;
+
+            const priceInput = document.getElementById('report-price');
+            const queueSelect = document.getElementById('report-queue');
+            const commentInput = document.getElementById('report-comment');
+            const selectedType = document.querySelector('.radio-option.selected');
+
+            const price = parseFloat(priceInput.value);
+            const queue = queueSelect.value;
+            const comment = commentInput.value.trim();
+            const isAvailable = selectedType?.textContent.includes('Есть');
+
+            if (isNaN(price) || price <= 0) {
+                showToast('❌ Введите корректную цену', 'error');
+                return;
+            }
+
+            station.fuels[fuelType] = {
+                price: price,
+                available: isAvailable,
+                updated: Date.now()
+            };
+
+            const report = {
+                stationId: stationId,
+                userId: userData?.id || 'guest',
+                fuelType: fuelType,
+                status: isAvailable ? 'available' : 'unavailable',
+                price: price,
+                queue: queue,
+                comment: comment,
+                timestamp: Date.now()
+            };
+
+            if (!station.reports) station.reports = [];
+            station.reports.push(report);
+            userReports.push(report);
+
+            storage.set('allStations', allStations);
+            storage.set('userReports', userReports);
+
+            addPoints(10);
+            userProfile.reports++;
+            if (userProfile.reports === 1) unlockAchievement('first_report');
+            if (userProfile.reports === 10) unlockAchievement('10_reports');
+            storage.set('userProfile', userProfile);
+
+            showToast('✅ Отчёт отправлен! +10 баллов', 'success');
+            renderPanelContent(station);
+            loadStationsOnMap();
+            updateStats();
         }
 
         // ================= ФУНКЦИИ =================
-        function selectFuel(fuelType) {
-            selectedFuel = fuelType;
-            document.querySelectorAll('.fuel-card').forEach(c => c.classList.remove('active'));
-            const activeCard = document.querySelector(`[data-fuel="${fuelType}"]`);
-            if (activeCard) activeCard.classList.add('active');
-            if (userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
-        }
-
-        function toggleFilter(filter) {
-            currentFilter = filter;
-            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-            const activeChip = document.querySelector(`[data-filter="${filter}"]`);
-            if (activeChip) activeChip.classList.add('active');
-            if (stations.length > 0) displayStations(stations);
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            if (event && event.target) event.target.classList.add('active');
-            ['search', 'favorites', 'history', 'achievements'].forEach(t => {
-                const tabEl = document.getElementById(`tab-${t}`);
-                if (tabEl) tabEl.style.display = t === tabName ? 'block' : 'none';
-            });
-            if (tabName === 'favorites') renderFavorites();
-            else if (tabName === 'history') renderPriceHistory();
-            else if (tabName === 'achievements') renderAllAchievements();
-        }
-
         async function useMyLocation() {
-            console.log(' Кнопка "Моё местоположение" нажата');
-            showToast(' Определяем местоположение...');
+            showToast('📍 Определяем местоположение...');
             
             let gotLocation = false;
             
@@ -443,7 +688,6 @@
                 const data = await vkBridge.send('VKWebAppGetLocation');
                 if (data && data.lat) { 
                     userCoords = { lat: data.lat, lon: data.lon }; 
-                    showToast(`📍 Найдено: ${data.lat.toFixed(4)}, ${data.lon.toFixed(4)}`);
                     await searchStationsByCoords(data.lat, data.lon);
                     gotLocation = true;
                 }
@@ -461,7 +705,6 @@
                         });
                     });
                     userCoords = { lat: position.coords.latitude, lon: position.coords.longitude };
-                    showToast(`📍 Найдено: ${userCoords.lat.toFixed(4)}, ${userCoords.lon.toFixed(4)}`);
                     await searchStationsByCoords(userCoords.lat, userCoords.lon);
                     gotLocation = true;
                 } catch (error) {
@@ -471,7 +714,6 @@
             
             if (!gotLocation) {
                 userCoords = { lat: 55.7558, lon: 37.6173 };
-                showToast('📍 Используем координаты Москвы');
                 await searchStationsByCoords(55.7558, 37.6173);
             }
         }
@@ -488,86 +730,39 @@
         async function searchStationsByCoords(lat, lon) {
             if (myMap) myMap.setCenter([lat, lon], 13);
             
-            // Фильтруем АЗС в радиусе 10 км
             stations = allStations
                 .map(s => ({ ...s, distance: calculateDistance(lat, lon, s.lat, s.lon) }))
                 .filter(s => s.distance <= 10)
                 .sort((a, b) => a.distance - b.distance);
             
-            displayStations(stations);
+            renderStationsList(stations);
         }
 
-        function displayStations(stationsList) {
-            const container = document.getElementById('stations-content');
+        function renderStationsList(stationsList) {
+            const container = document.getElementById('stations-list-mobile');
             if (!container) return;
-            container.innerHTML = '';
             
-            let sorted = [...stationsList];
-            if (currentFilter === 'distance') sorted.sort((a, b) => a.distance - b.distance);
-            else if (currentFilter === 'price') sorted.sort((a, b) => (a.fuels[selectedFuel]?.price || 999) - (b.fuels[selectedFuel]?.price || 999));
-            else if (currentFilter === 'available') {
-                sorted = sorted.filter(s => s.fuels[selectedFuel]?.available);
-                sorted.sort((a, b) => a.distance - b.distance);
-            }
-
-            if (sorted.length === 0) { 
-                container.innerHTML = '<div class="loading">АЗС не найдены</div>'; 
+            if (stationsList.length === 0) { 
+                container.innerHTML = '<div class="loading">АЗС не найдены в радиусе 10 км</div>'; 
                 return; 
             }
 
-            updateStats();
-
-            sorted.forEach((station, index) => {
-                const isFavorite = userProfile.favorites.includes(station.id);
-                const fuel = station.fuels[selectedFuel];
-                const price = fuel?.price || 0;
-                const available = fuel?.available || false;
-                const lastUpdate = fuel?.updated ? timeAgo(fuel.updated) : 'неизвестно';
-
-                const card = document.createElement('div');
-                card.className = `station-card ${isFavorite ? 'favorite' : ''}`;
-                card.style.animationDelay = `${index * 0.1}s`;
-
-                card.innerHTML = `
-                    ${isFavorite ? '<div class="favorite-badge">❤️</div>' : ''}
-                    <div class="station-header">
-                        <div class="station-top">
-                            <div class="station-logo">⛽</div>
-                            <div class="station-info">
-                                <div class="station-name">${station.name} ⭐ ${station.rating}</div>
-                                <div class="station-address">${station.address}</div>
-                                <div class="station-distance">📍 ${station.distance.toFixed(1)} км</div>
-                            </div>
-                        </div>
-                        <div class="station-actions">
-                            <button class="btn btn-primary" onclick="navigateTo('${station.address}', ${station.lat}, ${station.lon})">🗺️ Поехали</button>
-                            <button class="btn btn-danger" onclick="toggleFavorite('${station.id}')">${isFavorite ? '💔 Убрать' : '❤️ В избранное'}</button>
+            container.innerHTML = stationsList.map(station => `
+                <div class="station-item" onclick="openStationPanel('${station.id}')">
+                    <div class="station-item-header">
+                        <div>
+                            <div class="station-item-name">${station.name}  ${station.rating}</div>
+                            <div class="station-item-distance">📍 ${station.distance.toFixed(1)} км</div>
                         </div>
                     </div>
-                    <div class="fuel-list">
-                        <div class="fuel-item" onclick="openReportModal('${station.id}')">
-                            <div class="fuel-header">
-                                <div class="fuel-name">${selectedFuel.toUpperCase()}</div>
-                                <div class="fuel-status">
-                                    <span class="status-dot ${available ? 'available' : 'unavailable'}"></span>
-                                    ${available ? 'Доступно' : 'Недоступно'}
-                                </div>
-                            </div>
-                            <div class="fuel-meta">Обновлено: ${lastUpdate}</div>
-                            <div class="fuel-footer">
-                                <div class="fuel-limit">Отчётов: ${station.reports?.length || 0}</div>
-                                <div><span class="fuel-price">${price.toFixed(2)} ₽</span></div>
-                            </div>
-                        </div>
+                    <div class="station-item-address">${station.address}</div>
+                    <div class="station-item-fuel">
+                        ${Object.entries(station.fuels).map(([type, fuel]) => `
+                            <span class="fuel-tag ${fuel.available ? 'available' : ''}">${type.toUpperCase()}: ${fuel.price.toFixed(0)}₽</span>
+                        `).join('')}
                     </div>
-                    <div class="quick-actions">
-                        <div class="quick-action" onclick="openReportModal('${station.id}', 'available')">✅ Есть</div>
-                        <div class="quick-action" onclick="openReportModal('${station.id}', 'unavailable')">❌ Нет</div>
-                        <div class="quick-action" onclick="openReportModal('${station.id}', 'price')">💰 Цена</div>
-                        <div class="quick-action" onclick="openReportModal('${station.id}', 'queue')">💬 Очередь</div>
-                    </div>`;
-                container.appendChild(card);
-            });
+                </div>
+            `).join('');
         }
 
         function timeAgo(timestamp) {
@@ -593,139 +788,6 @@
             }
             storage.set('userProfile', userProfile); 
             updateUI();
-            if (stations.length > 0) displayStations(stations);
-        }
-
-        function renderFavorites() {
-            const container = document.getElementById('favorites-content');
-            if (!container) return;
-            const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
-            if (favStations.length === 0) { 
-                container.innerHTML = '<div class="loading">У вас пока нет избранных АЗС</div>'; 
-                return; 
-            }
-            container.innerHTML = '';
-            favStations.forEach(station => {
-                const card = document.createElement('div');
-                card.className = 'station-card favorite';
-                const fuel = station.fuels[selectedFuel];
-                card.innerHTML = `
-                    <div class="favorite-badge">❤️</div>
-                    <div class="station-header">
-                        <div class="station-top">
-                            <div class="station-logo">⛽</div>
-                            <div class="station-info">
-                                <div class="station-name">${station.name}</div>
-                                <div class="station-address">${station.address}</div>
-                            </div>
-                        </div>
-                        <div class="station-actions">
-                            <button class="btn btn-primary" onclick="navigateTo('${station.address}', ${station.lat}, ${station.lon})">🗺️ Поехали</button>
-                            <button class="btn btn-danger" onclick="toggleFavorite('${station.id}')">💔 Убрать</button>
-                        </div>
-                    </div>
-                    <div class="fuel-list">
-                        <div class="fuel-item">
-                            <div class="fuel-header">
-                                <div class="fuel-name">${selectedFuel.toUpperCase()}</div>
-                                <div class="fuel-status">
-                                    <span class="status-dot ${fuel?.available ? 'available' : 'unavailable'}"></span>
-                                    ${fuel?.available ? 'Доступно' : 'Недоступно'}
-                                </div>
-                            </div>
-                            <div class="fuel-footer">
-                                <div class="fuel-limit">${fuel?.price?.toFixed(2) || '0.00'} ₽</div>
-                            </div>
-                        </div>
-                    </div>`;
-                container.appendChild(card);
-            });
-        }
-
-        function renderPriceHistory() {
-            const container = document.getElementById('history-content');
-            if (!container) return;
-            
-            // Собираем историю цен из отчётов пользователя
-            const myReports = userReports.filter(r => r.fuelType === selectedFuel);
-            
-            if (myReports.length === 0) {
-                container.innerHTML = '<div class="loading">📊 Вы ещё не добавляли отчёты. Добавьте первый отчёт о цене!</div>';
-                return;
-            }
-
-            // Группируем по дням
-            const priceHistory = {};
-            myReports.forEach(r => {
-                const date = new Date(r.timestamp).toLocaleDateString('ru-RU');
-                if (!priceHistory[date]) priceHistory[date] = [];
-                priceHistory[date].push(r.price);
-            });
-
-            const labels = Object.keys(priceHistory).sort();
-            const prices = labels.map(date => {
-                const pricesOnDate = priceHistory[date];
-                return pricesOnDate.reduce((a, b) => a + b, 0) / pricesOnDate.length;
-            });
-
-            if (priceChart) priceChart.destroy();
-
-            const ctx = document.getElementById('priceChart').getContext('2d');
-            const isDark = document.body.classList.contains('dark-theme');
-            const textColor = isDark ? '#FFFFFF' : '#000000';
-            const gridColor = isDark ? '#38383A' : '#E5E5EA';
-
-            priceChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: `Цена ${selectedFuel.toUpperCase()}, ₽`,
-                        data: prices,
-                        borderColor: '#0077FF',
-                        backgroundColor: 'rgba(0, 119, 255, 0.1)',
-                        borderWidth: 2, fill: true, tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: textColor } } },
-                    scales: {
-                        y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: false },
-                        x: { ticks: { color: textColor }, grid: { color: gridColor } }
-                    }
-                }
-            });
-
-            const minPrice = Math.min(...prices).toFixed(2);
-            const maxPrice = Math.max(...prices).toFixed(2);
-            container.innerHTML = `
-                <div style="margin-top: 20px;">
-                    <div class="section-title">Ваша статистика</div>
-                    <div style="padding: 12px; background: var(--bg); border-radius: 12px;">
-                        <div style="font-weight: 600; color: var(--success);">Минимальная цена: ${minPrice} ₽</div>
-                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Максимальная цена: ${maxPrice} ₽</div>
-                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Всего отчётов: ${myReports.length}</div>
-                    </div>
-                </div>`;
-        }
-
-        function renderAllAchievements() {
-            const container = document.getElementById('achievements-content');
-            if (!container) return;
-            const allAchievements = [
-                { id: 'first_report', name: ' Первый отчёт', desc: 'Отправьте первый отчёт о топливе', unlocked: userProfile.achievements.includes('first_report') },
-                { id: '10_reports', name: '🔥 10 отчётов', desc: 'Отправьте 10 отчётов', unlocked: userProfile.achievements.includes('10_reports') },
-                { id: 'helper', name: '🤝 Помощник', desc: 'Помогите 50 пользователям', unlocked: userProfile.achievements.includes('helper') },
-                { id: 'explorer', name: '🗺️ Исследователь', desc: 'Посетите 20 разных АЗС', unlocked: userProfile.achievements.includes('explorer') },
-                { id: 'favorite', name: '❤️ Коллекционер', desc: 'Добавьте 5 АЗС в избранное', unlocked: userProfile.favorites.length >= 5 }
-            ];
-            container.innerHTML = allAchievements.map(a => `
-                <div style="padding: 16px; background: ${a.unlocked ? 'var(--success)' : 'var(--bg)'}; border-radius: 12px; margin-bottom: 12px; color: ${a.unlocked ? 'white' : 'var(--text)'};">
-                    <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">${a.name}</div>
-                    <div style="font-size: 13px; opacity: 0.9;">${a.desc}</div>
-                    <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">${a.unlocked ? '✅ Получено' : '🔒 Заблокировано'}</div>
-                </div>`).join('');
         }
 
         function addPoints(points) {
@@ -748,178 +810,14 @@
             }
         }
 
-        // ================= МОДАЛЬНЫЕ ОКНА =================
-        function openReportModal(stationId, reportType = null) {
-            const station = allStations.find(s => s.id === stationId);
-            if (!station) return;
-
-            const modal = document.getElementById('report-modal');
-            const content = document.getElementById('report-modal-content');
-            
-            const fuel = station.fuels[selectedFuel];
-            const currentPrice = fuel?.price || 0;
-            const isAvailable = fuel?.available || false;
-
-            content.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h2 style="font-size: 24px; margin-bottom: 4px;">${station.name}</h2>
-                    <div style="color: var(--text-secondary);">${station.address}</div>
-                    <div style="margin-top: 8px; font-size: 18px; font-weight: 700;">${selectedFuel.toUpperCase()}: ${currentPrice.toFixed(2)} ₽</div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Статус топлива</label>
-                    <div class="radio-group">
-                        <div class="radio-option ${reportType === 'available' ? 'selected' : ''}" onclick="selectReportType('available', this)">✅ Есть</div>
-                        <div class="radio-option ${reportType === 'unavailable' ? 'selected' : ''}" onclick="selectReportType('unavailable', this)">❌ Нет</div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Цена (₽)</label>
-                    <input type="number" id="report-price" class="form-input" value="${currentPrice}" step="0.01" placeholder="Введите цену">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Очередь</label>
-                    <select id="report-queue" class="form-input">
-                        <option value="no_queue">Нет очереди</option>
-                        <option value="small">Маленькая (1-3 машины)</option>
-                        <option value="medium">Средняя (4-7 машин)</option>
-                        <option value="large">Большая (8+ машин)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Комментарий (необязательно)</label>
-                    <textarea id="report-comment" class="form-textarea" placeholder="Например: работает только 2 колонки"></textarea>
-                </div>
-                
-                <button class="btn btn-success" onclick="submitReport('${stationId}')">✅ Отправить отчёт (+10 баллов)</button>
-                <button class="btn" style="background: var(--bg); margin-top: 10px;" onclick="closeReportModal()">Отмена</button>
-            `;
-            
-            modal.classList.add('show');
-        }
-
-        function selectReportType(type, element) {
-            document.querySelectorAll('.radio-option').forEach(el => el.classList.remove('selected'));
-            element.classList.add('selected');
-        }
-
-        function submitReport(stationId) {
-            const station = allStations.find(s => s.id === stationId);
-            if (!station) return;
-
-            const priceInput = document.getElementById('report-price');
-            const queueSelect = document.getElementById('report-queue');
-            const commentInput = document.getElementById('report-comment');
-            const selectedType = document.querySelector('.radio-option.selected');
-
-            const price = parseFloat(priceInput.value);
-            const queue = queueSelect.value;
-            const comment = commentInput.value.trim();
-            const isAvailable = selectedType?.textContent.includes('Есть') || station.fuels[selectedFuel]?.available;
-
-            if (isNaN(price) || price <= 0) {
-                showToast('❌ Введите корректную цену', 'error');
-                return;
-            }
-
-            // Обновляем данные станции
-            station.fuels[selectedFuel] = {
-                price: price,
-                available: isAvailable,
-                updated: Date.now()
-            };
-
-            // Добавляем отчёт
-            const report = {
-                stationId: stationId,
-                userId: userData?.id || 'guest',
-                fuelType: selectedFuel,
-                status: isAvailable ? 'available' : 'unavailable',
-                price: price,
-                queue: queue,
-                comment: comment,
-                timestamp: Date.now()
-            };
-
-            if (!station.reports) station.reports = [];
-            station.reports.push(report);
-            userReports.push(report);
-
-            // Сохраняем
-            storage.set('allStations', allStations);
-            storage.set('userReports', userReports);
-
-            // Начисляем баллы
-            addPoints(10);
-            userProfile.reports++;
-            if (userProfile.reports === 1) unlockAchievement('first_report');
-            if (userProfile.reports === 10) unlockAchievement('10_reports');
-            storage.set('userProfile', userProfile);
-
-            closeReportModal();
-            showToast('✅ Отчёт отправлен! +10 баллов', 'success');
-            
-            if (stations.length > 0) displayStations(stations);
-            loadStationsOnMap();
-        }
-
-        function closeReportModal() {
-            document.getElementById('report-modal').classList.remove('show');
-        }
-
         function openAddStationModal() {
-            const modal = document.getElementById('add-station-modal');
-            const content = document.getElementById('add-station-modal-content');
-            
-            content.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h2 style="font-size: 24px; margin-bottom: 4px;"> Добавить АЗС</h2>
-                    <div style="color: var(--text-secondary);">Помогите другим водителям!</div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Название АЗС</label>
-                    <input type="text" id="new-station-name" class="form-input" placeholder="Например: Лукойл">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Адрес</label>
-                    <input type="text" id="new-station-address" class="form-input" placeholder="Введите адрес">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Координаты (широта, долгота)</label>
-                    <input type="text" id="new-station-coords" class="form-input" placeholder="55.751244, 37.618423">
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Можно получить в Яндекс Картах</div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Доступное топливо</label>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg); border-radius: 12px; cursor: pointer;">
-                            <input type="checkbox" id="fuel-ai92" checked> АИ-92
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg); border-radius: 12px; cursor: pointer;">
-                            <input type="checkbox" id="fuel-ai95" checked> АИ-95
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg); border-radius: 12px; cursor: pointer;">
-                            <input type="checkbox" id="fuel-ai100"> АИ-100
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg); border-radius: 12px; cursor: pointer;">
-                            <input type="checkbox" id="fuel-dt" checked> Дизель
-                        </label>
-                    </div>
-                </div>
-                
-                <button class="btn btn-success" onclick="submitNewStation()">✅ Добавить АЗС (+20 баллов)</button>
-                <button class="btn" style="background: var(--bg); margin-top: 10px;" onclick="closeAddStationModal()">Отмена</button>
-            `;
-            
-            modal.classList.add('show');
+            document.getElementById('add-station-panel').classList.add('show');
+            document.getElementById('add-station-overlay').classList.add('show');
+        }
+
+        function closeAddStationModal() {
+            document.getElementById('add-station-panel').classList.remove('show');
+            document.getElementById('add-station-overlay').classList.remove('show');
         }
 
         function submitNewStation() {
@@ -928,7 +826,7 @@
             const coords = document.getElementById('new-station-coords').value.trim();
             
             if (!name || !address || !coords) {
-                showToast('❌ Заполните все поля', 'error');
+                showToast(' Заполните все поля', 'error');
                 return;
             }
 
@@ -973,13 +871,8 @@
 
             closeAddStationModal();
             showToast('✅ АЗС добавлена! +20 баллов', 'success');
-            
-            if (userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
             loadStationsOnMap();
-        }
-
-        function closeAddStationModal() {
-            document.getElementById('add-station-modal').classList.remove('show');
+            updateStats();
         }
 
         function navigateTo(address, lat, lon) {
@@ -989,6 +882,62 @@
             });
         }
 
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            if (event && event.target) event.target.classList.add('active');
+            
+            const bottomSheet = document.getElementById('bottom-sheet');
+            
+            if (tabName === 'search') {
+                document.getElementById('tab-search').style.display = 'block';
+                document.getElementById('tab-favorites').style.display = 'none';
+                document.getElementById('tab-achievements').style.display = 'none';
+                if (userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
+            } else if (tabName === 'favorites') {
+                document.getElementById('tab-search').style.display = 'none';
+                document.getElementById('tab-favorites').style.display = 'block';
+                document.getElementById('tab-achievements').style.display = 'none';
+                renderFavorites();
+            } else if (tabName === 'achievements') {
+                document.getElementById('tab-search').style.display = 'none';
+                document.getElementById('tab-favorites').style.display = 'none';
+                document.getElementById('tab-achievements').style.display = 'block';
+                renderAllAchievements();
+            }
+        }
+
+        function renderFavorites() {
+            const container = document.getElementById('tab-favorites');
+            const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
+            if (favStations.length === 0) { 
+                container.innerHTML = '<div class="loading">У вас пока нет избранных АЗС</div>'; 
+                return; 
+            }
+            container.innerHTML = favStations.map(station => `
+                <div class="station-item" onclick="openStationPanel('${station.id}')">
+                    <div class="station-item-name">${station.name} ⭐ ${station.rating}</div>
+                    <div class="station-item-address">${station.address}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderAllAchievements() {
+            const container = document.getElementById('tab-achievements');
+            const allAchievements = [
+                { id: 'first_report', name: '🎯 Первый отчёт', desc: 'Отправьте первый отчёт о топливе', unlocked: userProfile.achievements.includes('first_report') },
+                { id: '10_reports', name: '🔥 10 отчётов', desc: 'Отправьте 10 отчётов', unlocked: userProfile.achievements.includes('10_reports') },
+                { id: 'helper', name: '🤝 Помощник', desc: 'Помогите 50 пользователям', unlocked: userProfile.achievements.includes('helper') },
+                { id: 'explorer', name: '🗺️ Исследователь', desc: 'Добавьте АЗС на карту', unlocked: userProfile.achievements.includes('explorer') }
+            ];
+            container.innerHTML = allAchievements.map(a => `
+                <div style="padding: 16px; background: ${a.unlocked ? 'var(--success)' : 'var(--bg)'}; border-radius: 12px; margin-bottom: 12px; color: ${a.unlocked ? 'white' : 'var(--text)'};">
+                    <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">${a.name}</div>
+                    <div style="font-size: 13px; opacity: 0.9;">${a.desc}</div>
+                    <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">${a.unlocked ? '✅ Получено' : '🔒 Заблокировано'}</div>
+                </div>
+            `).join('');
+        }
+
         function showToast(message, type = '') {
             const toast = document.getElementById('toast');
             if (!toast) return;
@@ -996,23 +945,6 @@
             toast.className = 'toast ' + type; 
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        // Закрытие модалок по клику вне контента
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.classList.remove('show');
-            });
-        });
-
-        const cityInput = document.getElementById('city-input');
-        if (cityInput) {
-            cityInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') { 
-                    const city = this.value.trim(); 
-                    if (city) showToast(`🔍 Ищем: ${city}`); 
-                }
-            });
         }
     </script>
 </body>
