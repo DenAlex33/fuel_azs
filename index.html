@@ -1021,14 +1021,36 @@
             updateUI();
         });
 
+        async function startApp() {
+            // 1. Сначала инициализируем VK Bridge и пользователя
+            try {
+                await vkBridge.send('VKWebAppInit');
+                const data = await vkBridge.send('VKWebAppGetUserInfo');
+                if (data) {
+                    userData = data;
+                    document.getElementById('user-name').textContent = `${data.first_name} ${data.last_name}`;
+                    document.getElementById('user-id').textContent = `ID: ${data.id}`;
+                    document.getElementById('user-avatar').innerHTML = `${data.first_name[0]}${data.last_name[0]}<span class="user-level">${userProfile.level}</span>`;
+                }
+            } catch (e) {
+                console.log('Работаем в режиме гостя или вне VK');
+                document.getElementById('user-name').textContent = 'Гость';
+            }
+        
+            updateUI();
+        
+            // 2. Ждем, пока карта ПОЛНОСТЬЮ создастся
+            await initMap();
+        
+            // 3. Только теперь загружаем данные и рисуем маркеры
+            await loadStationsData();
+        }
+        
+        // Запускаем, когда DOM готов
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                initMap();
-                loadStationsData();
-            });
+            document.addEventListener('DOMContentLoaded', startApp);
         } else {
-            initMap();
-            loadStationsData();
+            startApp();
         }
     </script>
 </body>
