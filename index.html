@@ -579,22 +579,35 @@
                 console.log("🔄 Загрузка данных о заправках из stations.json...");
                 const response = await fetch('stations.json');
                 if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
+        
                 const data = await response.json();
-                allStations = data.stations || [];
-                console.log(`✅ Загружено ${allStations.length} АЗС из файла`);
+                const fileStations = data.stations || [];
+                console.log(`✅ Загружено ${fileStations.length} АЗС из файла`);
+                
+                //  ГЛАВНОЕ ИЗМЕНЕНИЕ: Объединяем с localStorage
+                const localStations = storage.get('allStations', []);
+                const localUserStations = localStations.filter(s => s.id.startsWith('station_'));
+                
+                // Объединяем: базовые из файла + пользовательские из localStorage
+                allStations = [...fileStations, ...localUserStations];
+                
+                console.log(`➕ Добавлено ${localUserStations.length} пользовательских АЗС из localStorage`);
+                console.log(`📊 Всего АЗС: ${allStations.length}`);
+                
             } catch (error) {
-                console.error("❌ Ошибка загрузки stations.json:", error);
+                console.error(" Ошибка загрузки stations.json:", error);
                 showToast("⚠️ Не удалось загрузить файл, используем демо-данные", "error");
-                allStations = DEMO_STATIONS; // Fallback
+                // Пробуем загрузить из localStorage, если файл не доступен
+                const localStations = storage.get('allStations', []);
+                allStations = localStations.length > 0 ? localStations : DEMO_STATIONS;
             }
-
+        
             // После того как allStations определен, обновляем интерфейс
             updateStats();
             renderAchievements();
             updateUI();
             loadStationsOnMap();
-
+        
             if (userCoords) {
                 searchStationsByCoords(userCoords.lat, userCoords.lon);
             }
@@ -1036,16 +1049,16 @@
                 console.log('Работаем в режиме гостя или вне VK');
                 document.getElementById('user-name').textContent = 'Гость';
             }
-        
+
             updateUI();
-        
+
             // 2. Ждем, пока карта ПОЛНОСТЬЮ создастся
             await initMap();
-        
+
             // 3. Только теперь загружаем данные и рисуем маркеры
             await loadStationsData();
         }
-        
+
         // Запускаем, когда DOM готов
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', startApp);
