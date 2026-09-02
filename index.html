@@ -26,7 +26,7 @@
             background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; transition: var(--transition);
             overflow-x: hidden; -webkit-font-smoothing: antialiased;
         }
-        
+
         /* Header */
         .header { background: var(--card-bg); padding: 15px 20px; box-shadow: 0 2px 10px var(--shadow); position: sticky; top: 0; z-index: 100; }
         .header-content { display: flex; justify-content: space-between; align-items: center; }
@@ -34,7 +34,7 @@
         .header-actions { display: flex; gap: 8px; }
         .icon-btn { width: 40px; height: 40px; border: none; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: var(--transition); }
         .icon-btn:active { transform: scale(0.9); background: var(--border); }
-        
+
         /* User Bar */
         .user-bar { background: var(--card-bg); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
         .user-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
@@ -45,17 +45,46 @@
         .user-points { text-align: right; flex-shrink: 0; }
         .points-value { font-size: 18px; font-weight: 700; color: var(--warning); }
         .points-label { font-size: 11px; color: var(--text-secondary); }
-        
+
         /* Stats Bar */
         .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; background: var(--card-bg); margin-bottom: 1px; }
         .stat-item { text-align: center; padding: 12px; background: var(--bg); border-radius: 12px; }
         .stat-value { font-size: 24px; font-weight: 700; color: var(--primary); }
         .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
-        
+
         /* Map */
         .map-container { height: 50vh; min-height: 350px; position: relative; background: #e5e5e5; }
         #map { width: 100%; height: 100%; }
-        
+
+        /* Map Controls (Avito-style) */
+        .map-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 50;
+        }
+        .map-control-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: none;
+            background: var(--card-bg);
+            box-shadow: 0 4px 12px var(--shadow);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: var(--transition);
+            position: relative;
+        }
+        .map-control-btn:active { transform: scale(0.9); }
+        .map-control-btn:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+        .map-control-btn.active { background: var(--primary); color: white; }
+
         /* Side Panel (Avito-style) */
         .side-panel {
             position: fixed;
@@ -86,16 +115,18 @@
             transition: all 0.3s;
         }
         .side-panel-overlay.show { opacity: 1; visibility: visible; }
-        
+
         .panel-header {
             padding: 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: flex-start;
             background: var(--gradient);
             color: white;
+            position: relative;
         }
+        .panel-header-top { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
         .panel-header-content { flex: 1; }
         .panel-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
         .panel-address { font-size: 14px; opacity: 0.9; line-height: 1.4; }
@@ -112,11 +143,31 @@
             align-items: center;
             justify-content: center;
             transition: var(--transition);
+            flex-shrink: 0;
         }
         .panel-close:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.3); }
-        
+
+        .panel-header .btn-navi {
+            margin-top: 16px;
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+        .panel-header .btn-navi:active { transform: scale(0.98); background: var(--primary-dark); }
+
         .panel-content { flex: 1; overflow-y: auto; padding: 20px; }
-        
+
         /* Fuel Cards (Avito-style) */
         .fuel-card {
             background: var(--bg);
@@ -130,7 +181,7 @@
         .fuel-card:active { transform: scale(0.98); background: var(--card-bg); }
         .fuel-card.available { border-color: var(--success); }
         .fuel-card.unavailable { border-color: var(--danger); opacity: 0.7; }
-        
+
         .fuel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .fuel-type { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         .fuel-status {
@@ -145,15 +196,14 @@
         .fuel-status.available { background: rgba(52, 199, 89, 0.15); color: var(--success); }
         .fuel-status.unavailable { background: rgba(255, 59, 48, 0.15); color: var(--danger); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-        
+
         .fuel-price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .fuel-price { font-size: 28px; font-weight: 700; color: var(--text); }
         .fuel-price-label { font-size: 14px; color: var(--text-secondary); }
-        
+
+        .fuel-limits { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
         .fuel-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
-        .fuel-updated::before { content: "🕐 "; }
-        .fuel-reports::before { content: " "; }
-        
+
         /* Report Form */
         .report-form { background: var(--bg); border-radius: 16px; padding: 16px; margin-top: 20px; }
         .form-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
@@ -163,19 +213,19 @@
         .form-input:focus { border-color: var(--primary); }
         .form-textarea { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; outline: none; background: var(--card-bg); color: var(--text); transition: var(--transition); resize: vertical; min-height: 80px; font-family: inherit; }
         .form-textarea:focus { border-color: var(--primary); }
-        
+
         .radio-group { display: flex; gap: 12px; }
         .radio-option { flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: var(--transition); background: var(--card-bg); font-weight: 600; }
         .radio-option:active { transform: scale(0.95); }
         .radio-option.selected { border-color: var(--success); background: var(--success); color: white; }
         .radio-option.selected.no { border-color: var(--danger); background: var(--danger); }
-        
+
         .btn { padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition); width: 100%; }
         .btn:active { transform: scale(0.98); }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-primary { background: var(--primary); color: white; }
-        
+
         /* Comments Section */
         .comments-section { margin-top: 20px; }
         .comments-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
@@ -185,11 +235,93 @@
         .comment-time { font-size: 12px; color: var(--text-secondary); }
         .comment-text { font-size: 14px; color: var(--text); line-height: 1.4; }
         .comment-queue { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
-        
+
+        /* Info Block */
+        .info-block {
+            margin-top: 20px;
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border);
+        }
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .info-content {
+            display: none;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .info-content.show { display: block; }
+        .info-arrow { margin-left: auto; transition: transform 0.3s; }
+        .info-arrow.show { transform: rotate(180deg); }
+
+        /* Confirm Block */
+        .confirm-block {
+            margin-top: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+        }
+        .confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .confirm-text { font-size: 14px; opacity: 0.9; margin-bottom: 16px; line-height: 1.4; }
+        .confirm-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .confirm-btn {
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+        }
+        .confirm-btn:active { transform: scale(0.95); }
+        .confirm-btn-yes { background: white; color: var(--primary); }
+        .confirm-btn-no { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; }
+
+        /* Nearby Stations */
+        .nearby-section { margin-top: 20px; }
+        .nearby-station-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .nearby-station-item:active { transform: scale(0.98); background: var(--border); }
+        .nearby-station-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .nearby-station-info { flex: 1; min-width: 0; }
+        .nearby-station-name { font-weight: 700; font-size: 15px; }
+        .nearby-station-address { font-size: 12px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .nearby-station-distance { font-size: 14px; color: var(--text-secondary); margin-left: 12px; flex-shrink: 0; }
+
         /* Action Buttons */
         .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .btn-large { padding: 16px; font-size: 16px; }
-        
+
         /* Bottom Sheet for Mobile */
         .bottom-sheet {
             position: fixed;
@@ -208,30 +340,31 @@
         }
         .bottom-sheet.show { transform: translateY(0); }
         .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
-        
+
         /* Tabs */
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
         .tab { padding: 10px 16px; background: var(--bg); border: none; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: var(--transition); }
         .tab.active { background: var(--primary); color: white; }
-        
+
         /* Station List */
-        .station-list { padding: 20px; }
-        .station-item { background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px var(--shadow); cursor: pointer; transition: var(--transition); }
+        .station-item { background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px var(--shadow); cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 12px; }
         .station-item:active { transform: scale(0.98); }
-        .station-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .station-item-name { font-size: 17px; font-weight: 700; }
-        .station-item-distance { font-size: 13px; color: var(--text-secondary); }
-        .station-item-address { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
-        .station-item-fuel { display: flex; gap: 8px; flex-wrap: wrap; }
+        .station-item-logo { width: 44px; height: 44px; border-radius: 10px; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; flex-shrink: 0; }
+        .station-item-info { flex: 1; min-width: 0; }
+        .station-item-name { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .station-item-address { font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .station-item-distance { font-size: 14px; color: var(--text-secondary); flex-shrink: 0; }
+        .station-item-fuel { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
         .fuel-tag { padding: 6px 12px; background: var(--bg); border-radius: 8px; font-size: 13px; font-weight: 600; }
         .fuel-tag.available { background: rgba(52, 199, 89, 0.15); color: var(--success); }
-        
+        .favorite-icon { color: var(--danger); font-size: 16px; }
+
         /* Toast */
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--card-bg); padding: 14px 24px; border-radius: 12px; font-size: 14px; font-weight: 500; z-index: 2000; opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); text-align: center; max-width: 90%; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.success { background: var(--success); color: white; }
         .toast.error { background: var(--danger); color: white; }
-        
+
         /* Responsive */
         @media (min-width: 768px) {
             .bottom-sheet { display: none; }
@@ -240,8 +373,10 @@
         @media (max-width: 767px) {
             .side-panel { display: none; }
             .map-container { height: 40vh; min-height: 300px; }
+            .map-controls { bottom: 12px; right: 12px; }
+            .map-control-btn { width: 46px; height: 46px; font-size: 20px; }
         }
-        
+
         .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
         .achievement { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: linear-gradient(135deg, #FFD700, #FFA500); color: white; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 4px; animation: popIn 0.3s ease-out; }
         @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -252,7 +387,6 @@
         <div class="header-content">
             <h1>⛽ Заправки Рядом</h1>
             <div class="header-actions">
-                <button class="icon-btn" onclick="toggleTheme()">🌙</button>
                 <button class="icon-btn" onclick="openAddStationModal()">➕</button>
             </div>
         </div>
@@ -282,6 +416,16 @@
 
     <div class="map-container">
         <div id="map"></div>
+
+        <!-- Map Controls -->
+        <div class="map-controls">
+            <button class="map-control-btn" id="theme-toggle-btn" onclick="toggleTheme()">
+                <span id="theme-icon">🌙</span>
+            </button>
+            <button class="map-control-btn" onclick="useMyLocation()">
+                <span>📍</span>
+            </button>
+        </div>
     </div>
 
     <div class="bottom-sheet" id="bottom-sheet">
@@ -289,7 +433,7 @@
         <div class="tabs">
             <button class="tab active" onclick="switchTab('search')">🔍 Поиск</button>
             <button class="tab" onclick="switchTab('favorites')">❤️ Избранное</button>
-            <button class="tab" onclick="switchTab('achievements')">🏆 Достижения</button>
+            <button class="tab" onclick="switchTab('achievements')"> Достижения</button>
         </div>
         <div id="tab-search">
             <button onclick="useMyLocation()" class="btn btn-primary" style="margin-bottom: 16px;">📍 Моё местоположение</button>
@@ -303,26 +447,29 @@
     <div class="side-panel-overlay" id="panel-overlay" onclick="closeSidePanel()"></div>
     <div class="side-panel" id="side-panel">
         <div class="panel-header">
-            <div class="panel-header-content">
-                <div class="panel-title" id="panel-station-name">АЗС</div>
-                <div class="panel-address" id="panel-station-address">Адрес</div>
+            <div class="panel-header-top">
+                <div class="panel-header-content">
+                    <div class="panel-title" id="panel-station-name">АЗС</div>
+                    <div class="panel-address" id="panel-station-address">Адрес</div>
+                </div>
+                <button class="panel-close" onclick="closeSidePanel()">✕</button>
             </div>
-            <button class="panel-close" onclick="closeSidePanel()">✕</button>
+            <button class="btn-navi" onclick="openYandexNavi(selectedStation?.lat, selectedStation?.lon)">️ Поехали</button>
         </div>
-        <div class="panel-content" id="panel-content">
-            <!-- Content will be inserted here -->
-        </div>
+        <div class="panel-content" id="panel-content"></div>
     </div>
 
     <!-- Add Station Modal -->
     <div class="side-panel-overlay" id="add-station-overlay" onclick="closeAddStationModal()"></div>
     <div class="side-panel" id="add-station-panel">
         <div class="panel-header">
-            <div class="panel-header-content">
-                <div class="panel-title">➕ Добавить АЗС</div>
-                <div class="panel-address">Помогите другим водителям!</div>
+            <div class="panel-header-top">
+                <div class="panel-header-content">
+                    <div class="panel-title">➕ Добавить АЗС</div>
+                    <div class="panel-address">Помогите другим водителям!</div>
+                </div>
+                <button class="panel-close" onclick="closeAddStationModal()">✕</button>
             </div>
-            <button class="panel-close" onclick="closeAddStationModal()">✕</button>
         </div>
         <div class="panel-content">
             <div class="form-group">
@@ -362,8 +509,8 @@
 
     <script>
         // ================= ДАННЫЕ =================
-        let myMap, userData = null, userCoords = null, stations = [], priceChart = null, selectedStation = null;
-        
+        let myMap, userData = null, userCoords = null, stations = [], selectedStation = null;
+
         const DEMO_STATIONS = [
             { id: '1', name: 'Лукойл', address: 'МКАД 2 км, вл5', lat: 55.752, lon: 37.574, fuels: { ai92: { price: 63.99, available: true, updated: Date.now() - 300000 }, ai95: { price: 69.69, available: true, updated: Date.now() - 300000 }, ai100: { price: 79.99, available: true, updated: Date.now() - 300000 }, dt: { price: 75.50, available: true, updated: Date.now() - 300000 } }, reports: [], rating: 4.8 },
             { id: '2', name: 'Газпромнефть', address: 'ул. Победы, 29, Реутов', lat: 55.759, lon: 37.860, fuels: { ai92: { price: 64.50, available: true, updated: Date.now() - 600000 }, ai95: { price: 70.20, available: false, updated: Date.now() - 600000 }, ai100: { price: 80.50, available: true, updated: Date.now() - 600000 }, dt: { price: 76.00, available: true, updated: Date.now() - 600000 } }, reports: [], rating: 4.5 },
@@ -391,9 +538,13 @@
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             storage.set('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-icon').textContent = isDark ? '️' : '🌙';
             showToast(isDark ? '🌙 Тёмная тема включена' : '☀️ Светлая тема включена');
         }
-        if (storage.get('theme') === 'dark') document.body.classList.add('dark-theme');
+        if (storage.get('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+            document.getElementById('theme-icon').textContent = '☀️';
+        }
 
         vkBridge.send('VKWebAppInit').then(() => vkBridge.send('VKWebAppGetUserInfo')).then((data) => {
             if (data) {
@@ -407,7 +558,7 @@
             document.getElementById('user-name').textContent = 'Гость';
             updateUI();
         });
-        
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initMap);
         } else {
@@ -427,11 +578,11 @@
             const totalStations = allStations.length;
             const availableStations = allStations.filter(s => Object.values(s.fuels).some(f => f.available)).length;
             const totalReports = userReports.length;
-            
+
             const statTotal = document.getElementById('stat-total');
             const statAvailable = document.getElementById('stat-available');
             const statReports = document.getElementById('stat-reports');
-            
+
             if (statTotal) statTotal.textContent = totalStations;
             if (statAvailable) statAvailable.textContent = availableStations;
             if (statReports) statReports.textContent = totalReports;
@@ -440,7 +591,7 @@
         function renderAchievements() {
             const container = document.getElementById('achievements');
             if (!container) return;
-            const badges = { 'first_report': '🎯 Первый отчёт', '10_reports': '🔥 10 отчётов', 'helper': '🤝 Помощник', 'explorer': '🗺️ Исследователь' };
+            const badges = { 'first_report': '🎯 Первый отчёт', '10_reports': ' 10 отчётов', 'helper': '🤝 Помощник', 'explorer': '🗺️ Исследователь' };
             container.innerHTML = userProfile.achievements.map(a => `<div class="achievement">${badges[a] || a}</div>`).join('');
         }
 
@@ -470,20 +621,21 @@
         function loadStationsOnMap() {
             if (!myMap) return;
             myMap.geoObjects.removeAll();
-            
+
             allStations.forEach(station => {
                 const hasFuel = Object.values(station.fuels).some(f => f.available);
+                const isFavorite = userProfile.favorites.includes(station.id);
                 const placemark = new ymaps.Placemark([station.lat, station.lon], {
                     hintContent: station.name,
-                    balloonContent: `<b>${station.name}</b><br>${station.address}<br>⭐ ${station.rating}`
+                    balloonContent: `<b>${station.name}</b><br>${station.address}<br>⭐ ${station.rating}${isFavorite ? '<br>❤️ В избранном' : ''}`
                 }, {
                     preset: hasFuel ? 'islands#greenGasStationIcon' : 'islands#redGasStationIcon'
                 });
-                
+
                 placemark.events.add('click', () => {
                     openStationPanel(station.id);
                 });
-                
+
                 myMap.geoObjects.add(placemark);
             });
         }
@@ -492,13 +644,13 @@
         function openStationPanel(stationId) {
             const station = allStations.find(s => s.id === stationId);
             if (!station) return;
-            
+
             selectedStation = station;
             document.getElementById('panel-station-name').textContent = `${station.name} ⭐ ${station.rating}`;
             document.getElementById('panel-station-address').textContent = station.address;
-            
+
             renderPanelContent(station);
-            
+
             document.getElementById('side-panel').classList.add('show');
             document.getElementById('panel-overlay').classList.add('show');
         }
@@ -510,7 +662,18 @@
 
         function renderPanelContent(station) {
             const content = document.getElementById('panel-content');
-            
+
+            // Находим ближайшие АЗС
+            const nearbyStations = allStations
+                .filter(s => s.id !== station.id)
+                .map(s => ({
+                    ...s,
+                    distance: calculateDistance(station.lat, station.lon, s.lat, s.lon)
+                }))
+                .filter(s => s.distance <= 5)
+                .sort((a, b) => a.distance - b.distance)
+                .slice(0, 5);
+
             let fuelsHtml = '';
             Object.entries(station.fuels).forEach(([fuelType, fuel]) => {
                 const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
@@ -520,27 +683,32 @@
                             <div class="fuel-type">${fuelNames[fuelType]}</div>
                             <div class="fuel-status ${fuel.available ? 'available' : 'unavailable'}">
                                 <span class="status-dot"></span>
-                                ${fuel.available ? 'Доступно' : 'Нет'}
+                                ${fuel.available ? 'Высокая' : 'Недоступна'}
                             </div>
                         </div>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+                            Статус обновлён: ${timeAgo(fuel.updated)}
+                        </div>
                         <div class="fuel-price-row">
+                            <div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Лимит 30 л</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Лимит — 50 л ⓘ</div>
+                            </div>
                             <div class="fuel-price">${fuel.price.toFixed(2)} ₽</div>
-                            <div class="fuel-price-label">за литр</div>
                         </div>
                         <div class="fuel-meta">
-                            <span class="fuel-updated">Обновлено: ${timeAgo(fuel.updated)}</span>
-                            <span class="fuel-reports">Отчётов: ${station.reports?.filter(r => r.fuelType === fuelType).length || 0}</span>
+                            <span>Отчётов: ${station.reports?.filter(r => r.fuelType === fuelType).length || 0}</span>
                         </div>
                     </div>
                 `;
             });
-            
-            // Comments section
+
+            // Комментарии
             const stationReports = station.reports || [];
             let commentsHtml = '';
             if (stationReports.length > 0) {
                 const recentReports = stationReports.slice(-5).reverse();
-                commentsHtml = '<div class="comments-section"><div class="comments-title"> Последние отчёты</div>';
+                commentsHtml = '<div class="comments-section"><div class="comments-title">📋 Последние отчёты</div>';
                 recentReports.forEach(report => {
                     commentsHtml += `
                         <div class="comment-item">
@@ -561,15 +729,87 @@
             } else {
                 commentsHtml = '<div class="comments-section"><div class="comments-title"> Последние отчёты</div><div class="loading" style="padding: 20px;">Пока нет отчётов. Будьте первым!</div></div>';
             }
-            
+
+            // Ближайшие АЗС
+            let nearbyHtml = '';
+            if (nearbyStations.length > 0) {
+                nearbyHtml = `
+                    <div class="nearby-section">
+                        <div class="comments-title">БЛИЖАЙШИЕ АЗС</div>
+                        ${nearbyStations.map(s => `
+                            <div class="nearby-station-item" onclick="openStationPanel('${s.id}')">
+                                <div class="nearby-station-logo"></div>
+                                <div class="nearby-station-info">
+                                    <div class="nearby-station-name">${s.name}</div>
+                                    <div class="nearby-station-address">${s.address}</div>
+                                </div>
+                                <div class="nearby-station-distance">${s.distance < 1 ? `${(s.distance * 1000).toFixed(0)} м` : `${s.distance.toFixed(1)} км`} ›</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // Информационный блок
+            const infoBlock = `
+                <div class="info-block">
+                    <div class="info-header" onclick="toggleInfoBlock()">
+                        <span>ℹ️</span>
+                        <span>Информация носит справочный характер.</span>
+                        <span class="info-arrow" id="info-arrow">▼</span>
+                    </div>
+                    <div class="info-content" id="info-content">
+                        <p style="margin-bottom: 12px;">Доступность АЗС определяется на основе анализа транзакций по топливным картам и через мобильное приложение, а также на основе агрегированных данных из открытых источников.</p>
+                        <p style="margin-bottom: 12px;">Отображаются три уровня доступности:</p>
+                        <p style="margin-bottom: 8px;"><strong>Высокая</strong> – транзакции происходят в штатном режиме.</p>
+                        <p style="margin-bottom: 8px;"><strong>Не подтверждена</strong> – уровень транзакций ниже обычного.</p>
+                        <p style="margin-bottom: 12px;"><strong>Недоступна</strong> – транзакции отсутствуют или АЗС закрыта в данный момент.</p>
+                        <p>Информация о доступности АЗС и действующих ограничениях носит справочный характер. Компания не гарантирует её полноту, точность и актуальность в режиме реального времени и не несёт ответственности за убытки, возникшие вследствие использования такой информации. Фактическую возможность и условия отпуска топлива рекомендуется уточнять на месте или у оператора АЗС.</p>
+                    </div>
+                </div>
+            `;
+
+            // Блок подтверждения
+            const confirmBlock = `
+                <div class="confirm-block">
+                    <div class="confirm-title">Подтвердите данные</div>
+                    <div class="confirm-text">Помогите нам поддерживать информацию актуальной. Подтвердите, соответствуют ли данные карты реальной ситуации на АЗС.</div>
+                    <div class="confirm-buttons">
+                        <button class="confirm-btn confirm-btn-yes" onclick="confirmData('${station.id}', true)">Да</button>
+                        <button class="confirm-btn confirm-btn-no" onclick="confirmData('${station.id}', false)">Нет</button>
+                    </div>
+                </div>
+            `;
+
+            const isFavorite = userProfile.favorites.includes(station.id);
+
             content.innerHTML = `
                 ${fuelsHtml}
                 ${commentsHtml}
+                ${nearbyHtml}
+                ${infoBlock}
+                ${confirmBlock}
                 <div class="action-buttons">
-                    <button class="btn btn-primary btn-large" onclick="navigateTo('${station.address}', ${station.lat}, ${station.lon})">🗺️ Поехали</button>
-                    <button class="btn btn-danger btn-large" onclick="toggleFavorite('${station.id}')">❤️ В избранное</button>
+                    <button class="btn btn-danger btn-large" onclick="toggleFavorite('${station.id}')">${isFavorite ? '💔 Убрать из избранного' : '❤️ В избранное'}</button>
                 </div>
             `;
+        }
+
+        function toggleInfoBlock() {
+            const content = document.getElementById('info-content');
+            const arrow = document.getElementById('info-arrow');
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                arrow.classList.remove('show');
+            } else {
+                content.classList.add('show');
+                arrow.classList.add('show');
+            }
+        }
+
+        function confirmData(stationId, confirmed) {
+            showToast(confirmed ? '✅ Спасибо за подтверждение! +5 баллов' : '❌ Данные не подтверждены', 'success');
+            addPoints(5);
         }
 
         function getQueueText(queue) {
@@ -580,10 +820,10 @@
         function openReportForm(stationId, fuelType) {
             const station = allStations.find(s => s.id === stationId);
             if (!station) return;
-            
+
             const fuel = station.fuels[fuelType];
             const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
-            
+
             const content = document.getElementById('panel-content');
             content.innerHTML = `
                 <div class="report-form">
@@ -681,20 +921,20 @@
         // ================= ФУНКЦИИ =================
         async function useMyLocation() {
             showToast('📍 Определяем местоположение...');
-            
+
             let gotLocation = false;
-            
+
             try {
                 const data = await vkBridge.send('VKWebAppGetLocation');
-                if (data && data.lat) { 
-                    userCoords = { lat: data.lat, lon: data.lon }; 
+                if (data && data.lat) {
+                    userCoords = { lat: data.lat, lon: data.lon };
                     await searchStationsByCoords(data.lat, data.lon);
                     gotLocation = true;
                 }
             } catch (e) {
                 console.error('Ошибка VK геолокации:', e);
             }
-            
+
             if (!gotLocation && navigator.geolocation) {
                 try {
                     const position = await new Promise((resolve, reject) => {
@@ -711,7 +951,7 @@
                     console.error('Ошибка браузерной геолокации:', error);
                 }
             }
-            
+
             if (!gotLocation) {
                 userCoords = { lat: 55.7558, lon: 37.6173 };
                 await searchStationsByCoords(55.7558, 37.6173);
@@ -729,40 +969,42 @@
 
         async function searchStationsByCoords(lat, lon) {
             if (myMap) myMap.setCenter([lat, lon], 13);
-            
+
             stations = allStations
                 .map(s => ({ ...s, distance: calculateDistance(lat, lon, s.lat, s.lon) }))
                 .filter(s => s.distance <= 10)
                 .sort((a, b) => a.distance - b.distance);
-            
+
             renderStationsList(stations);
         }
 
         function renderStationsList(stationsList) {
             const container = document.getElementById('stations-list-mobile');
             if (!container) return;
-            
-            if (stationsList.length === 0) { 
-                container.innerHTML = '<div class="loading">АЗС не найдены в радиусе 10 км</div>'; 
-                return; 
+
+            if (stationsList.length === 0) {
+                container.innerHTML = '<div class="loading">АЗС не найдены в радиусе 10 км</div>';
+                return;
             }
 
-            container.innerHTML = stationsList.map(station => `
-                <div class="station-item" onclick="openStationPanel('${station.id}')">
-                    <div class="station-item-header">
-                        <div>
-                            <div class="station-item-name">${station.name}  ${station.rating}</div>
-                            <div class="station-item-distance">📍 ${station.distance.toFixed(1)} км</div>
+            container.innerHTML = stationsList.map(station => {
+                const isFavorite = userProfile.favorites.includes(station.id);
+                return `
+                    <div class="station-item" onclick="openStationPanel('${station.id}')">
+                        <div class="station-item-logo"></div>
+                        <div class="station-item-info">
+                            <div class="station-item-name">${station.name} ⭐ ${station.rating} ${isFavorite ? '<span class="favorite-icon">❤️</span>' : ''}</div>
+                            <div class="station-item-address">${station.address}</div>
+                            <div class="station-item-fuel">
+                                ${Object.entries(station.fuels).map(([type, fuel]) => `
+                                    <span class="fuel-tag ${fuel.available ? 'available' : ''}">${type.toUpperCase()}: ${fuel.price.toFixed(0)}₽</span>
+                                `).join('')}
+                            </div>
                         </div>
+                        <div class="station-item-distance">${station.distance < 1 ? `${(station.distance * 1000).toFixed(0)} м` : `${station.distance.toFixed(1)} км`}</div>
                     </div>
-                    <div class="station-item-address">${station.address}</div>
-                    <div class="station-item-fuel">
-                        ${Object.entries(station.fuels).map(([type, fuel]) => `
-                            <span class="fuel-tag ${fuel.available ? 'available' : ''}">${type.toUpperCase()}: ${fuel.price.toFixed(0)}₽</span>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function timeAgo(timestamp) {
@@ -778,35 +1020,40 @@
 
         function toggleFavorite(stationId) {
             const idx = userProfile.favorites.indexOf(stationId);
-            if (idx > -1) { 
-                userProfile.favorites.splice(idx, 1); 
-                showToast('💔 Удалено из избранного'); 
-            } else { 
-                userProfile.favorites.push(stationId); 
-                showToast('❤️ Добавлено в избранное'); 
-                addPoints(5); 
+            if (idx > -1) {
+                userProfile.favorites.splice(idx, 1);
+                showToast('💔 Удалено из избранного');
+            } else {
+                userProfile.favorites.push(stationId);
+                showToast('❤️ Добавлено в избранное');
+                addPoints(5);
             }
-            storage.set('userProfile', userProfile); 
+            storage.set('userProfile', userProfile);
             updateUI();
+            if (selectedStation && selectedStation.id === stationId) {
+                renderPanelContent(selectedStation);
+            }
+            loadStationsOnMap();
+            if (stations.length > 0) renderStationsList(stations);
         }
 
         function addPoints(points) {
             userProfile.points += points;
             const newLevel = Math.floor(userProfile.points / 100) + 1;
-            if (newLevel > userProfile.level) { 
-                userProfile.level = newLevel; 
-                showToast(`🎉 Новый уровень: ${newLevel}!`); 
+            if (newLevel > userProfile.level) {
+                userProfile.level = newLevel;
+                showToast(`🎉 Новый уровень: ${newLevel}!`);
             }
-            storage.set('userProfile', userProfile); 
+            storage.set('userProfile', userProfile);
             updateUI();
         }
 
         function unlockAchievement(id) {
             if (!userProfile.achievements.includes(id)) {
-                userProfile.achievements.push(id); 
-                storage.set('userProfile', userProfile); 
-                updateUI(); 
-                showToast(' Новое достижение!');
+                userProfile.achievements.push(id);
+                storage.set('userProfile', userProfile);
+                updateUI();
+                showToast('🏆 Новое достижение!');
             }
         }
 
@@ -824,9 +1071,9 @@
             const name = document.getElementById('new-station-name').value.trim();
             const address = document.getElementById('new-station-address').value.trim();
             const coords = document.getElementById('new-station-coords').value.trim();
-            
+
             if (!name || !address || !coords) {
-                showToast(' Заполните все поля', 'error');
+                showToast('❌ Заполните все поля', 'error');
                 return;
             }
 
@@ -838,7 +1085,7 @@
 
             const fuels = {};
             const basePrices = { ai92: 63.99, ai95: 69.69, ai100: 79.99, dt: 75.50 };
-            
+
             ['ai92', 'ai95', 'ai100', 'dt'].forEach(fuelType => {
                 const checkbox = document.getElementById(`fuel-${fuelType}`);
                 if (checkbox && checkbox.checked) {
@@ -873,21 +1120,39 @@
             showToast('✅ АЗС добавлена! +20 баллов', 'success');
             loadStationsOnMap();
             updateStats();
+            if (userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
         }
 
-        function navigateTo(address, lat, lon) {
-            const yandexMapsUrl = `https://yandex.ru/maps/?rtext=${userCoords?.lat || 55.7558},${userCoords?.lon || 37.6173}~${lat},${lon}&rtt=auto`;
-            vkBridge.send('VKWebAppOpenLink', { link: yandexMapsUrl }).catch(() => {
-                window.open(yandexMapsUrl, '_blank');
-            });
+        function openYandexNavi(lat, lon) {
+            if (!lat || !lon) {
+                showToast('❌ Координаты не доступны', 'error');
+                return;
+            }
+            const userLat = userCoords?.lat || 55.7558;
+            const userLon = userCoords?.lon || 37.6173;
+
+            const naviUrl = `yandexnavi://build_route_on_map?lat_from=${userLat}&lon_from=${userLon}&lat_to=${lat}&lon_to=${lon}`;
+            const mapsUrl = `https://yandex.ru/maps/?rtext=${userLat},${userLon}~${lat},${lon}&rtt=auto`;
+
+            vkBridge.send('VKWebAppOpenLink', { link: naviUrl })
+                .then(() => {
+                    showToast('🗺️ Открываем Яндекс Навигатор...');
+                })
+                .catch(() => {
+                    vkBridge.send('VKWebAppOpenLink', { link: mapsUrl })
+                        .then(() => {
+                            showToast('🗺️ Открываем Яндекс Карты...');
+                        })
+                        .catch(() => {
+                            window.open(mapsUrl, '_blank');
+                        });
+                });
         }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             if (event && event.target) event.target.classList.add('active');
-            
-            const bottomSheet = document.getElementById('bottom-sheet');
-            
+
             if (tabName === 'search') {
                 document.getElementById('tab-search').style.display = 'block';
                 document.getElementById('tab-favorites').style.display = 'none';
@@ -909,14 +1174,17 @@
         function renderFavorites() {
             const container = document.getElementById('tab-favorites');
             const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
-            if (favStations.length === 0) { 
-                container.innerHTML = '<div class="loading">У вас пока нет избранных АЗС</div>'; 
-                return; 
+            if (favStations.length === 0) {
+                container.innerHTML = '<div class="loading">У вас пока нет избранных АЗС</div>';
+                return;
             }
             container.innerHTML = favStations.map(station => `
                 <div class="station-item" onclick="openStationPanel('${station.id}')">
-                    <div class="station-item-name">${station.name} ⭐ ${station.rating}</div>
-                    <div class="station-item-address">${station.address}</div>
+                    <div class="station-item-logo">⛽</div>
+                    <div class="station-item-info">
+                        <div class="station-item-name">${station.name} ⭐ ${station.rating} <span class="favorite-icon">❤️</span></div>
+                        <div class="station-item-address">${station.address}</div>
+                    </div>
                 </div>
             `).join('');
         }
@@ -926,7 +1194,7 @@
             const allAchievements = [
                 { id: 'first_report', name: '🎯 Первый отчёт', desc: 'Отправьте первый отчёт о топливе', unlocked: userProfile.achievements.includes('first_report') },
                 { id: '10_reports', name: '🔥 10 отчётов', desc: 'Отправьте 10 отчётов', unlocked: userProfile.achievements.includes('10_reports') },
-                { id: 'helper', name: '🤝 Помощник', desc: 'Помогите 50 пользователям', unlocked: userProfile.achievements.includes('helper') },
+                { id: 'helper', name: ' Помощник', desc: 'Помогите 50 пользователям', unlocked: userProfile.achievements.includes('helper') },
                 { id: 'explorer', name: '🗺️ Исследователь', desc: 'Добавьте АЗС на карту', unlocked: userProfile.achievements.includes('explorer') }
             ];
             container.innerHTML = allAchievements.map(a => `
@@ -941,8 +1209,8 @@
         function showToast(message, type = '') {
             const toast = document.getElementById('toast');
             if (!toast) return;
-            toast.textContent = message; 
-            toast.className = 'toast ' + type; 
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
