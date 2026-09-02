@@ -453,6 +453,7 @@
 
     <script>
         // ================= 1. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =================
+        const API_URL = 'https://it-reutov.start-ovh.ru/api/index.php';
         let myMap, userData = null, userCoords = null, stations = [], selectedStation = null;
 
         const STATION_LOGOS = {
@@ -492,13 +493,11 @@
 
         // ================= 4. ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ =================
         let userProfile = storage.get('userProfile', { points: 0, level: 1, achievements: [], reports: 0, favorites: [] });
-        let allStations = []; // Будет заполнено из JSON или демо-данных
+        let allStations = []; 
         let userReports = storage.get('userReports', []);
 
-        // Применяем сохраненную тему при загрузке
         if (storage.get('theme') === 'dark') {
             document.body.classList.add('dark-theme');
-            document.getElementById('theme-icon').textContent = '☀️';
             document.getElementById('header-theme-icon').textContent = '☀️';
         }
 
@@ -507,12 +506,8 @@
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             storage.set('theme', isDark ? 'dark' : 'light');
-            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
             document.getElementById('header-theme-icon').textContent = isDark ? '☀️' : '🌙';
-
-            if (myMap) {
-                myMap.setType(isDark ? 'yandex#dark' : 'yandex#map');
-            }
+            if (myMap) myMap.setType(isDark ? 'yandex#dark' : 'yandex#map');
             showToast(isDark ? '🌙 Тёмная тема включена' : '☀️ Светлая тема включена');
         }
 
@@ -529,11 +524,9 @@
             const totalStations = allStations.length;
             const availableStations = allStations.filter(s => Object.values(s.fuels).some(f => f.available)).length;
             const totalReports = userReports.length;
-
             const statTotal = document.getElementById('stat-total');
             const statAvailable = document.getElementById('stat-available');
             const statReports = document.getElementById('stat-reports');
-
             if (statTotal) statTotal.textContent = totalStations;
             if (statAvailable) statAvailable.textContent = availableStations;
             if (statReports) statReports.textContent = totalReports;
@@ -550,7 +543,7 @@
             return new Promise((resolve) => {
                 if (typeof ymaps === 'undefined') {
                     console.error('❌ Яндекс Карты API не загружен');
-                    resolve(); // Разрешаем, чтобы код не завис навсегда
+                    resolve();
                     return;
                 }
                 try {
@@ -565,7 +558,7 @@
                             });
                             console.log('✅ Карта успешно инициализирована');
                         }
-                        resolve(); // <--- ГЛАВНОЕ: Сообщаем, что карта готова!
+                        resolve();
                     });
                 } catch (err) {
                     console.error('Ошибка инициализации:', err);
@@ -576,38 +569,30 @@
 
         async function loadStationsData() {
             try {
-                console.log("🔄 Загрузка данных о заправках из stations.json...");
-                const response = await fetch('stations.json');
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        
+                console.log("🔄 Загрузка данных с сервера OVH...");
+                const response = await fetch(`${API_URL}?action=get_stations`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
                 const data = await response.json();
-                const fileStations = data.stations || [];
-                console.log(`✅ Загружено ${fileStations.length} АЗС из файла`);
-                
-                //  ГЛАВНОЕ ИЗМЕНЕНИЕ: Объединяем с localStorage
-                const localStations = storage.get('allStations', []);
-                const localUserStations = localStations.filter(s => s.id.startsWith('station_'));
-                
-                // Объединяем: базовые из файла + пользовательские из localStorage
-                allStations = [...fileStations, ...localUserStations];
-                
-                console.log(`➕ Добавлено ${localUserStations.length} пользовательских АЗС из localStorage`);
-                console.log(`📊 Всего АЗС: ${allStations.length}`);
-                
+                if (data.error) {
+                    console.error("Ошибка от сервера:", data.error);
+                    showToast("⚠️ Ошибка сервера: " + data.error, "error");
+                    allStations = DEMO_STATIONS;
+                } else {
+                    allStations = data.stations || [];
+                    console.log(`✅ Загружено ${allStations.length} АЗС с сервера`);
+                }
             } catch (error) {
-                console.error(" Ошибка загрузки stations.json:", error);
-                showToast("⚠️ Не удалось загрузить файл, используем демо-данные", "error");
-                // Пробуем загрузить из localStorage, если файл не доступен
-                const localStations = storage.get('allStations', []);
-                allStations = localStations.length > 0 ? localStations : DEMO_STATIONS;
+                console.error("❌ Ошибка загрузки:", error);
+                showToast("⚠️ Не удалось загрузить данные, используем демо", "error");
+                allStations = DEMO_STATIONS;
             }
-        
-            // После того как allStations определен, обновляем интерфейс
+
             updateStats();
             renderAchievements();
             updateUI();
             loadStationsOnMap();
-        
+
             if (userCoords) {
                 searchStationsByCoords(userCoords.lat, userCoords.lon);
             }
@@ -615,9 +600,7 @@
 
         function getStationLogo(stationName) {
             for (const [name, logo] of Object.entries(STATION_LOGOS)) {
-                if (stationName.toLowerCase().includes(name.toLowerCase())) {
-                    return logo;
-                }
+                if (stationName.toLowerCase().includes(name.toLowerCase())) return logo;
             }
             return { color: '#667eea', icon: '⛽' };
         }
@@ -658,7 +641,7 @@
         }
 
         function openStationPanel(stationId) {
-            const station = allStations.find(s => s.id === stationId);
+            const station = allStations.find(s => s.id == stationId);
             if (!station) return;
             selectedStation = station;
             document.getElementById('panel-station-name').textContent = `${station.name} ⭐ ${station.rating}`;
@@ -675,7 +658,7 @@
 
         function renderPanelContent(station) {
             const content = document.getElementById('panel-content');
-            const nearbyStations = allStations.filter(s => s.id !== station.id)
+            const nearbyStations = allStations.filter(s => s.id != station.id)
                 .map(s => ({ ...s, distance: calculateDistance(station.lat, station.lon, s.lat, s.lon) }))
                 .filter(s => s.distance <= 5).sort((a, b) => a.distance - b.distance).slice(0, 5);
 
@@ -690,12 +673,12 @@
                                 <span class="status-dot"></span>${fuel.available ? 'Высокая' : 'Недоступна'}
                             </div>
                         </div>
-                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Статус обновлён: ${timeAgo(fuel.updated)}</div>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Статус обновлён: ${timeAgo(fuel.updated || Date.now())}</div>
                         <div class="fuel-price-row">
                             <div><div style="font-size: 13px; color: var(--text-secondary);">Лимит 30 л</div><div style="font-size: 13px; color: var(--text-secondary);">Лимит — 50 л ⓘ</div></div>
                             <div class="fuel-price">${fuel.price.toFixed(2)} ₽</div>
                         </div>
-                        <div class="fuel-meta"><span>Отчётов: ${station.reports?.filter(r => r.fuelType === fuelType).length || 0}</span></div>
+                        <div class="fuel-meta"><span>Отчётов: ${station.reports?.filter(r => r.fuel_type === fuelType).length || 0}</span></div>
                     </div>`;
             });
 
@@ -706,8 +689,8 @@
                 stationReports.slice(-5).reverse().forEach(report => {
                     commentsHtml += `
                         <div class="comment-item">
-                            <div class="comment-header"><span class="comment-user">${report.fuelType.toUpperCase()}</span><span class="comment-time">${timeAgo(report.timestamp)}</span></div>
-                            <div class="comment-text">${report.status === 'available' ? '✅ Есть топливо' : '❌ Нет топлива'}<br>💰 Цена: ${report.price.toFixed(2)} ₽</div>
+                            <div class="comment-header"><span class="comment-user">${report.fuel_type.toUpperCase()}</span><span class="comment-time">${timeAgo(new Date(report.created_at).getTime())}</span></div>
+                            <div class="comment-text">${report.status === 'available' ? '✅ Есть топливо' : '❌ Нет топлива'}<br>💰 Цена: ${parseFloat(report.price).toFixed(2)} ₽</div>
                             ${report.queue ? `<div class="comment-queue">🚗 Очередь: ${getQueueText(report.queue)}</div>` : ''}
                             ${report.comment ? `<div class="comment-text" style="margin-top: 8px; font-style: italic;">"${report.comment}"</div>` : ''}
                         </div>`;
@@ -771,7 +754,7 @@
         }
 
         function openReportForm(stationId, fuelType) {
-            const station = allStations.find(s => s.id === stationId);
+            const station = allStations.find(s => s.id == stationId);
             if (!station) return;
             const fuel = station.fuels[fuelType];
             const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
@@ -795,7 +778,7 @@
                     </div>
                     <div class="form-group"><label class="form-label">Комментарий</label><textarea id="report-comment" class="form-textarea" placeholder="Например: работает только 2 колонки..."></textarea></div>
                     <button class="btn btn-success" onclick="submitReport('${stationId}', '${fuelType}')">✅ Отправить отчёт (+10 баллов)</button>
-                    <button class="btn" style="background: var(--bg); margin-top: 10px;" onclick="renderPanelContent(allStations.find(s => s.id === '${stationId}'))">← Назад</button>
+                    <button class="btn" style="background: var(--bg); margin-top: 10px;" onclick="renderPanelContent(allStations.find(s => s.id == '${stationId}'))">← Назад</button>
                 </div>`;
         }
 
@@ -804,8 +787,8 @@
             element.classList.add('selected');
         }
 
-        function submitReport(stationId, fuelType) {
-            const station = allStations.find(s => s.id === stationId);
+        async function submitReport(stationId, fuelType) {
+            const station = allStations.find(s => s.id == stationId);
             if (!station) return;
             const price = parseFloat(document.getElementById('report-price').value);
             const queue = document.getElementById('report-queue').value;
@@ -814,25 +797,38 @@
 
             if (isNaN(price) || price <= 0) { showToast('❌ Введите корректную цену', 'error'); return; }
 
-            station.fuels[fuelType] = { price: price, available: isAvailable, updated: Date.now() };
-            const report = { stationId, userId: userData?.id || 'guest', fuelType, status: isAvailable ? 'available' : 'unavailable', price, queue, comment, timestamp: Date.now() };
+            try {
+                showToast('💾 Отправка отчёта...');
+                const response = await fetch(`${API_URL}?action=add_report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        station_id: stationId,
+                        user_id: userData?.id || 'guest',
+                        fuel_type: fuelType,
+                        status: isAvailable ? 'available' : 'unavailable',
+                        price: price,
+                        queue: queue,
+                        comment: comment
+                    })
+                });
 
-            if (!station.reports) station.reports = [];
-            station.reports.push(report);
-            userReports.push(report);
-
-            storage.set('allStations', allStations);
-            storage.set('userReports', userReports);
-            addPoints(10);
-            userProfile.reports++;
-            if (userProfile.reports === 1) unlockAchievement('first_report');
-            if (userProfile.reports === 10) unlockAchievement('10_reports');
-            storage.set('userProfile', userProfile);
-
-            showToast('✅ Отчёт отправлен! +10 баллов', 'success');
-            renderPanelContent(station);
-            loadStationsOnMap();
-            updateStats();
+                const result = await response.json();
+                if (result.success) {
+                    showToast('✅ Отчёт отправлен! +10 баллов', 'success');
+                    addPoints(10);
+                    userProfile.reports++;
+                    if (userProfile.reports === 1) unlockAchievement('first_report');
+                    if (userProfile.reports === 10) unlockAchievement('10_reports');
+                    storage.set('userProfile', userProfile);
+                    await loadStationsData();
+                } else {
+                    showToast('❌ Ошибка отчёта', 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('❌ Ошибка сети', 'error');
+            }
         }
 
         async function useMyLocation() {
@@ -908,7 +904,7 @@
             else { userProfile.favorites.push(stationId); showToast('❤️ Добавлено в избранное'); addPoints(5); }
             storage.set('userProfile', userProfile);
             updateUI();
-            if (selectedStation && selectedStation.id === stationId) renderPanelContent(selectedStation);
+            if (selectedStation && selectedStation.id == stationId) renderPanelContent(selectedStation);
             loadStationsOnMap();
             if (stations.length > 0) renderStationsList(stations);
         }
@@ -939,7 +935,7 @@
             document.getElementById('add-station-overlay').classList.remove('show');
         }
 
-        function submitNewStation() {
+        async function submitNewStation() {
             const name = document.getElementById('new-station-name').value.trim();
             const address = document.getElementById('new-station-address').value.trim();
             const coords = document.getElementById('new-station-coords').value.trim();
@@ -951,19 +947,37 @@
             const basePrices = { ai92: 63.99, ai95: 69.69, ai100: 79.99, dt: 75.50 };
             ['ai92', 'ai95', 'ai100', 'dt'].forEach(fuelType => {
                 if (document.getElementById(`fuel-${fuelType}`).checked) {
-                    fuels[fuelType] = { price: basePrices[fuelType], available: true, updated: Date.now() };
+                    fuels[fuelType] = { price: basePrices[fuelType], available: true };
                 }
             });
 
-            allStations.push({ id: `station_${Date.now()}`, name, address, lat, lon, fuels, reports: [], rating: 5.0, addedBy: userData?.id || 'guest', addedAt: Date.now() });
-            storage.set('allStations', allStations);
-            addPoints(20);
-            unlockAchievement('explorer');
-            closeAddStationModal();
-            showToast('✅ АЗС добавлена! +20 баллов', 'success');
-            loadStationsOnMap();
-            updateStats();
-            if (userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
+            try {
+                showToast('💾 Сохранение на сервере...');
+                const response = await fetch(`${API_URL}?action=add_station`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name, address, lat, lon, brand: name, fuels, user_id: userData?.id || 'guest'
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('✅ АЗС добавлена в базу данных! +20 баллов', 'success');
+                    addPoints(20);
+                    unlockAchievement('explorer');
+                    closeAddStationModal();
+                    document.getElementById('new-station-name').value = '';
+                    document.getElementById('new-station-address').value = '';
+                    document.getElementById('new-station-coords').value = '';
+                    await loadStationsData();
+                } else {
+                    showToast('❌ Ошибка: ' + (result.error || 'Неизвестная'), 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('❌ Ошибка сети при сохранении', 'error');
+            }
         }
 
         function openYandexNavi(lat, lon) {
@@ -1021,21 +1035,7 @@
         }
 
         // ================= 6. ЗАПУСК ПРИЛОЖЕНИЯ =================
-        vkBridge.send('VKWebAppInit').then(() => vkBridge.send('VKWebAppGetUserInfo')).then((data) => {
-            if (data) {
-                userData = data;
-                document.getElementById('user-name').textContent = `${data.first_name} ${data.last_name}`;
-                document.getElementById('user-id').textContent = `ID: ${data.id}`;
-                document.getElementById('user-avatar').innerHTML = `${data.first_name[0]}${data.last_name[0]}<span class="user-level">${userProfile.level}</span>`;
-            }
-            updateUI();
-        }).catch(() => {
-            document.getElementById('user-name').textContent = 'Гость';
-            updateUI();
-        });
-
         async function startApp() {
-            // 1. Сначала инициализируем VK Bridge и пользователя
             try {
                 await vkBridge.send('VKWebAppInit');
                 const data = await vkBridge.send('VKWebAppGetUserInfo');
@@ -1051,15 +1051,10 @@
             }
 
             updateUI();
-
-            // 2. Ждем, пока карта ПОЛНОСТЬЮ создастся
             await initMap();
-
-            // 3. Только теперь загружаем данные и рисуем маркеры
             await loadStationsData();
         }
 
-        // Запускаем, когда DOM готов
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', startApp);
         } else {
