@@ -2,14 +2,15 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Заправки Рядом</title>
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-    <!-- Добавил API ключ для Яндекс Карт -->
     <script src="https://api-maps.yandex.ru/2.1/?apikey=fb2c860a-11d4-4c8a-9634-414a348a395a&lang=ru_RU" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         :root {
             --primary: #0077FF; --primary-dark: #0055CC; --success: #34C759; --danger: #FF3B30;
             --warning: #FF9500; --bg: #F2F3F8; --card-bg: #FFFFFF; --text: #000000;
@@ -24,6 +25,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: var(--bg); color: var(--text); min-height: 100vh; padding: 0 0 40px 0; transition: var(--transition);
+            overflow-x: hidden; -webkit-font-smoothing: antialiased;
         }
         .header { background: var(--card-bg); padding: 15px 20px; box-shadow: 0 2px 10px var(--shadow); position: sticky; top: 0; z-index: 100; transition: var(--transition); }
         .header-content { display: flex; justify-content: space-between; align-items: center; }
@@ -32,33 +34,33 @@
         .icon-btn { width: 40px; height: 40px; border: none; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: var(--transition); }
         .icon-btn:active { transform: scale(0.9); background: var(--border); }
         .user-bar { background: var(--card-bg); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); transition: var(--transition); }
-        .user-info { display: flex; align-items: center; gap: 12px; }
-        .user-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; position: relative; }
+        .user-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+        .user-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; position: relative; flex-shrink: 0; }
         .user-level { position: absolute; bottom: -2px; right: -2px; background: var(--warning); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 700; }
-        .user-name { font-size: 15px; font-weight: 600; }
+        .user-name { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .user-id { font-size: 12px; color: var(--text-secondary); }
-        .user-points { text-align: right; }
+        .user-points { text-align: right; flex-shrink: 0; }
         .points-value { font-size: 18px; font-weight: 700; color: var(--warning); }
         .points-label { font-size: 11px; color: var(--text-secondary); }
         .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; background: var(--card-bg); margin-bottom: 1px; transition: var(--transition); }
         .stat-item { text-align: center; padding: 12px; background: var(--bg); border-radius: 12px; transition: var(--transition); }
         .stat-value { font-size: 24px; font-weight: 700; color: var(--primary); }
         .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
-        .map-container { height: 40vh; position: relative; background: #e5e5e5; border-radius: 0 0 20px 20px; overflow: hidden; }
-        #map { width: 100%; height: 100%; min-height: 300px; }
-        .map-error { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-secondary); padding: 20px; }
-        .bottom-sheet { background: var(--card-bg); border-radius: 20px 20px 0 0; margin-top: -20px; padding: 20px; box-shadow: 0 -4px 20px var(--shadow); max-height: 60vh; overflow-y: auto; transition: var(--transition); }
+        .map-container { height: 40vh; min-height: 300px; position: relative; background: #e5e5e5; border-radius: 0 0 20px 20px; overflow: hidden; }
+        #map { width: 100%; height: 100%; }
+        .map-error { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-secondary); padding: 20px; background: var(--card-bg); border-radius: 12px; margin: 0 20px; }
+        .bottom-sheet { background: var(--card-bg); border-radius: 20px 20px 0 0; margin-top: -20px; padding: 20px; box-shadow: 0 -4px 20px var(--shadow); max-height: 60vh; overflow-y: auto; transition: var(--transition); -webkit-overflow-scrolling: touch; }
         .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
-        .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
         .tab { padding: 10px 16px; background: var(--bg); border: none; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: var(--transition); }
         .tab.active { background: var(--primary); color: white; }
         .tab:active { transform: scale(0.95); }
         .search-section { margin-bottom: 20px; }
         .search-input { width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; outline: none; background: var(--bg); color: var(--text); transition: var(--transition); }
         .search-input:focus { border-color: var(--primary); background: var(--card-bg); }
-        .btn { padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition); }
+        .btn { padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition); width: 100%; }
         .btn:active { transform: scale(0.98); }
-        .btn-primary { background: var(--primary); color: white; margin-top: 10px; width: 100%; }
+        .btn-primary { background: var(--primary); color: white; margin-top: 10px; }
         .btn-primary:active { background: var(--primary-dark); }
         .fuel-selector { margin-bottom: 20px; }
         .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
@@ -82,14 +84,14 @@
         .station-header { padding: 16px; border-bottom: 1px solid var(--border); }
         .station-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
         .station-logo { width: 48px; height: 48px; border-radius: 12px; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; flex-shrink: 0; }
-        .station-info { flex: 1; }
-        .station-name { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+        .station-info { flex: 1; min-width: 0; }
+        .station-name { font-size: 17px; font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .station-address { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
         .station-distance { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
         .station-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
         .btn-secondary { background: var(--danger); color: white; }
         .fuel-list { padding: 16px; }
-        .fuel-item { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; transition: var(--transition); }
+        .fuel-item { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; transition: var(--transition); cursor: pointer; }
         .fuel-item:active { background: var(--bg); }
         .fuel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .fuel-name { font-size: 16px; font-weight: 600; }
@@ -119,9 +121,28 @@
         .quick-action:active { transform: scale(0.95); background: var(--border); }
         .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); display: none; align-items: flex-end; justify-content: center; z-index: 1000; }
         .modal.show { display: flex; }
-        .modal-content { background: var(--card-bg); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 80vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
+        .modal-content { background: var(--card-bg); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 80vh; overflow-y: auto; animation: slideUp 0.3s ease-out; -webkit-overflow-scrolling: touch; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @media (max-width: 600px) { .fuel-grid { grid-template-columns: repeat(2, 1fr); } .header h1 { font-size: 18px; } }
+        
+        /* Mobile optimizations */
+        @media (max-width: 600px) {
+            .fuel-grid { grid-template-columns: repeat(2, 1fr); }
+            .header h1 { font-size: 18px; }
+            .stats-bar { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .stat-item { padding: 8px; }
+            .stat-value { font-size: 20px; }
+            .map-container { height: 35vh; min-height: 250px; }
+            .bottom-sheet { padding: 16px; }
+            .station-actions { grid-template-columns: 1fr; }
+            .quick-actions { flex-wrap: wrap; }
+            .quick-action { flex: 1 1 calc(50% - 4px); min-width: 100px; }
+        }
+        
+        @media (max-width: 400px) {
+            .fuel-grid { grid-template-columns: repeat(2, 1fr); }
+            .user-name { font-size: 14px; }
+            .points-value { font-size: 16px; }
+        }
     </style>
 </head>
 <body>
@@ -138,7 +159,7 @@
     <div class="user-bar">
         <div class="user-info">
             <div class="user-avatar" id="user-avatar">👤<span class="user-level" id="user-level">1</span></div>
-            <div>
+            <div style="min-width: 0;">
                 <div class="user-name" id="user-name">Загрузка...</div>
                 <div class="user-id" id="user-id">...</div>
             </div>
@@ -159,15 +180,8 @@
 
     <!-- Map Container -->
     <div class="map-container" id="map-container">
-        <div id="map" style="display: none;"></div>
-        <div id="map-fallback" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px;">
-            <div style="font-size: 64px; margin-bottom: 16px;">🗺️</div>
-            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; text-align: center;">Интерактивная карта</div>
-            <div style="font-size: 14px; opacity: 0.9; margin-bottom: 20px; text-align: center;">Откройте карту в приложении Яндекс Карты</div>
-            <button onclick="openYandexMaps()" class="btn" style="background: white; color: #667eea; text-decoration: none; display: inline-block; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer;">
-                📍 Открыть карту
-            </button>
-        </div>
+        <div id="map"></div>
+        <div id="map-error" style="display: none;"></div>
     </div>
 
     <div class="bottom-sheet">
@@ -181,7 +195,7 @@
 
         <div id="tab-search">
             <div class="search-section">
-                <input type="text" id="city-input" class="search-input" placeholder=" Поиск АЗС...">
+                <input type="text" id="city-input" class="search-input" placeholder="🔍 Поиск АЗС...">
                 <button onclick="useMyLocation()" class="btn btn-primary">📍 Моё местоположение</button>
             </div>
             <div class="fuel-selector">
@@ -196,8 +210,8 @@
             <div class="filters-section">
                 <div class="section-title">Фильтры</div>
                 <div class="filter-row">
-                    <div class="filter-chip active" data-filter="distance" onclick="toggleFilter('distance')"> По расстоянию</div>
-                    <div class="filter-chip" data-filter="price" onclick="toggleFilter('price')">💰 По цене</div>
+                    <div class="filter-chip active" data-filter="distance" onclick="toggleFilter('distance')">📏 По расстоянию</div>
+                    <div class="filter-chip" data-filter="price" onclick="toggleFilter('price')"> По цене</div>
                     <div class="filter-chip" data-filter="available" onclick="toggleFilter('available')">✅ Только с топливом</div>
                 </div>
             </div>
@@ -227,10 +241,8 @@
     <script>
         let myMap, selectedFuel = 'ai95', userData = null, userCoords = null, currentFilter = 'distance', stations = [], priceChart = null;
 
-        // ⚠️ ВАЖНО: Замени на реальный URL своего сервера!
-        // Если бэкенд на сервере, укажи: 'https://твоя-нода.start-ovh.ru:порт'
-        // Если тестируешь локально, используй: 'http://localhost:8000' (но это не будет работать из VK Mini App на GitHub)
-        const BACKEND_URL = 'http://node1.start-ovh.ru:7240';
+        // ✅ ИСПРАВЛЕНО: HTTPS вместо HTTP
+        const BACKEND_URL = 'https://node1.start-ovh.ru:7240';
 
         const storage = {
             get: (key, defaultValue) => { try { const item = localStorage.getItem(key); return item ? JSON.parse(item) : defaultValue; } catch { return defaultValue; } },
@@ -254,38 +266,51 @@
                 document.getElementById('user-id').textContent = `ID: ${data.id}`;
                 document.getElementById('user-avatar').innerHTML = `${data.first_name[0]}${data.last_name[0]}<span class="user-level">${userProfile.level}</span>`;
             }
-            updateUI(); initMap();
+            updateUI();
         }).catch(() => {
             document.getElementById('user-name').textContent = 'Гость';
-            updateUI(); initMap();
+            updateUI();
         });
+        
+        // Инициализация карты после загрузки DOM
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initMap);
+        } else {
+            initMap();
+        }
 
         function updateUI() {
-            document.getElementById('user-points').textContent = userProfile.points;
-            document.getElementById('user-level').textContent = userProfile.level;
+            const pointsEl = document.getElementById('user-points');
+            const levelEl = document.getElementById('user-level');
+            if (pointsEl) pointsEl.textContent = userProfile.points;
+            if (levelEl) levelEl.textContent = userProfile.level;
             renderAchievements();
         }
 
         function renderAchievements() {
             const container = document.getElementById('achievements');
+            if (!container) return;
             const badges = { 'first_report': '🎯 Первый отчёт', '10_reports': '🔥 10 отчётов', 'helper': ' Помощник', 'explorer': '🗺️ Исследователь' };
             container.innerHTML = userProfile.achievements.map(a => `<div class="achievement">${badges[a] || a}</div>`).join('');
         }
 
-        // 🆕 УЛУЧШЕННАЯ ИНИЦИАЛИЗАЦИЯ КАРТЫ
+        // ✅ ИСПРАВЛЕНО: Карта отображается сразу
         function initMap() {
-            // Проверяем, загрузился ли API Яндекс Карт
             if (typeof ymaps === 'undefined') {
-                console.error('❌ Яндекс Карты API не загружен');
-                document.getElementById('map-error').style.display = 'block';
-                document.getElementById('map').style.display = 'none';
-                showToast('Карта недоступна', 'error');
+                console.error(' Яндекс Карты API не загружен');
+                const mapErrorEl = document.getElementById('map-error');
+                const mapEl = document.getElementById('map');
+                if (mapErrorEl) {
+                    mapErrorEl.style.display = 'block';
+                    mapErrorEl.innerHTML = '<div style="padding: 20px; background: var(--card-bg); border-radius: 12px; text-align: center;"><div style="font-size: 48px; margin-bottom: 12px;">️</div><div>Карта временно недоступна</div></div>';
+                }
+                if (mapEl) mapEl.style.display = 'none';
                 return;
             }
 
             try {
-                document.getElementById('map-error').style.display = 'none';
-                document.getElementById('map').style.display = 'block';
+                const mapErrorEl = document.getElementById('map-error');
+                if (mapErrorEl) mapErrorEl.style.display = 'none';
 
                 ymaps.ready(function () {
                     try {
@@ -293,41 +318,51 @@
                             myMap = new ymaps.Map("map", {
                                 center: [55.751244, 37.618423],
                                 zoom: 10,
-                                controls: ['zoomControl']
+                                controls: ['zoomControl', 'geolocationControl']
                             });
-
                             console.log('✅ Карта успешно инициализирована');
                         }
                     } catch (err) {
                         console.error('Ошибка создания карты:', err);
-                        document.getElementById('map-error').style.display = 'block';
+                        const mapErrorEl = document.getElementById('map-error');
+                        if (mapErrorEl) {
+                            mapErrorEl.style.display = 'block';
+                            mapErrorEl.innerHTML = '<div style="padding: 20px;">Ошибка загрузки карты</div>';
+                        }
                     }
                 });
             } catch (err) {
                 console.error('Ошибка инициализации:', err);
-                document.getElementById('map-error').style.display = 'block';
+                const mapErrorEl = document.getElementById('map-error');
+                if (mapErrorEl) {
+                    mapErrorEl.style.display = 'block';
+                    mapErrorEl.innerHTML = '<div style="padding: 20px;">Ошибка инициализации карты</div>';
+                }
             }
         }
 
         function selectFuel(fuelType) {
             selectedFuel = fuelType;
             document.querySelectorAll('.fuel-card').forEach(c => c.classList.remove('active'));
-            document.querySelector(`[data-fuel="${fuelType}"]`).classList.add('active');
+            const activeCard = document.querySelector(`[data-fuel="${fuelType}"]`);
+            if (activeCard) activeCard.classList.add('active');
             if (userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
         }
 
         function toggleFilter(filter) {
             currentFilter = filter;
             document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+            const activeChip = document.querySelector(`[data-filter="${filter}"]`);
+            if (activeChip) activeChip.classList.add('active');
             if (stations.length > 0) displayStations(stations);
         }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
             ['search', 'favorites', 'history', 'achievements'].forEach(t => {
-                document.getElementById(`tab-${t}`).style.display = t === tabName ? 'block' : 'none';
+                const tabEl = document.getElementById(`tab-${t}`);
+                if (tabEl) tabEl.style.display = t === tabName ? 'block' : 'none';
             });
             if (tabName === 'favorites') renderFavorites();
             else if (tabName === 'history') renderPriceHistory();
@@ -335,16 +370,25 @@
         }
 
         async function useMyLocation() {
-            showToast(' Определяем местоположение...');
+            showToast('📍 Определяем местоположение...');
             try {
                 const data = await vkBridge.send('VKWebAppGetLocation');
-                if (data && data.lat) { userCoords = { lat: data.lat, lon: data.lon }; searchStationsByCoords(data.lat, data.lon); }
+                if (data && data.lat) { 
+                    userCoords = { lat: data.lat, lon: data.lon }; 
+                    searchStationsByCoords(data.lat, data.lon); 
+                }
             } catch (e) {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition((position) => {
                         userCoords = { lat: position.coords.latitude, lon: position.coords.longitude };
                         searchStationsByCoords(position.coords.latitude, position.coords.longitude);
-                    }, () => showToast('Не удалось определить местоположение', 'error'));
+                    }, () => showToast('Не удалось определить местоположение', 'error'), {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                } else {
+                    showToast('Геолокация не поддерживается', 'error');
                 }
             }
         }
@@ -353,8 +397,12 @@
             if (myMap) myMap.setCenter([lat, lon], 13);
             try {
                 const response = await fetch(`${BACKEND_URL}/api/stations/nearby?lat=${lat}&lon=${lon}&radius=5000&fuel=${selectedFuel}`);
-                if (response.ok) { stations = await response.json(); displayStations(stations); }
-                else { throw new Error(); }
+                if (response.ok) { 
+                    stations = await response.json(); 
+                    displayStations(stations); 
+                } else { 
+                    throw new Error(); 
+                }
             } catch (error) {
                 console.warn('Бэкенд недоступен, использую демо-данные');
                 stations = getMockStations(lat, lon);
@@ -365,7 +413,7 @@
         function getMockStations(centerLat, centerLon) {
             const prices = { 'ai92': 63.99, 'ai95': 69.69, 'ai100': 79.99, 'dt': 75.50 };
             return [
-                { id: '1', name: 'TATNEFT', address: 'ул. Победы, 29, Реутов', lat: centerLat + 0.008, lon: centerLon + 0.005, status: 'unavailable', distance: 0.944, price: prices[selectedFuel], priceChange: -2.5, limit: '50 л', updated: '8 мин назад', logo: '🔴', rating: 4.2, services: ['магазин', 'туалет', 'кафе'] },
+                { id: '1', name: 'TATNEFT', address: 'ул. Победы, 29, Реутов', lat: centerLat + 0.008, lon: centerLon + 0.005, status: 'unavailable', distance: 0.944, price: prices[selectedFuel], priceChange: -2.5, limit: '50 л', updated: '8 мин назад', logo: '', rating: 4.2, services: ['магазин', 'туалет', 'кафе'] },
                 { id: '2', name: 'Лукойл', address: 'МКАД 2 км, вл5', lat: centerLat + 0.012, lon: centerLon - 0.008, status: 'available', distance: 1.2, price: prices[selectedFuel] + 2, priceChange: 1.5, limit: '100 л', updated: '3 мин назад', logo: '🔴', rating: 4.8, services: ['магазин', 'мойка', 'кафе', 'туалет'] },
                 { id: '3', name: 'Газпромнефть', address: 'ш. Энтузиастов, 56', lat: centerLat - 0.010, lon: centerLon + 0.012, status: 'available', distance: 1.8, price: prices[selectedFuel] - 1.5, priceChange: 0, limit: '75 л', updated: '12 мин назад', logo: '🔵', rating: 4.5, services: ['магазин', 'туалет'] }
             ];
@@ -373,17 +421,25 @@
 
         function displayStations(stationsList) {
             const container = document.getElementById('stations-content');
+            if (!container) return;
             container.innerHTML = '';
             let sorted = [...stationsList];
             if (currentFilter === 'distance') sorted.sort((a, b) => a.distance - b.distance);
             else if (currentFilter === 'price') sorted.sort((a, b) => a.price - b.price);
             else if (currentFilter === 'available') { sorted = sorted.filter(s => s.status === 'available'); sorted.sort((a, b) => a.distance - b.distance); }
 
-            if (sorted.length === 0) { container.innerHTML = '<div class="loading">АЗС не найдены</div>'; return; }
+            if (sorted.length === 0) { 
+                container.innerHTML = '<div class="loading">АЗС не найдены</div>'; 
+                return; 
+            }
 
-            document.getElementById('stat-total').textContent = stationsList.length;
-            document.getElementById('stat-available').textContent = stationsList.filter(s => s.status === 'available').length;
-            document.getElementById('stat-distance').textContent = sorted[0]?.distance || '0';
+            const statTotal = document.getElementById('stat-total');
+            const statAvailable = document.getElementById('stat-available');
+            const statDistance = document.getElementById('stat-distance');
+            if (statTotal) statTotal.textContent = stationsList.length;
+            if (statAvailable) statAvailable.textContent = stationsList.filter(s => s.status === 'available').length;
+            if (statDistance) statDistance.textContent = sorted[0]?.distance || '0';
+            
             if (myMap) myMap.geoObjects.removeAll();
 
             sorted.forEach((station, index) => {
@@ -435,45 +491,57 @@
 
                 if (myMap && station.lat && station.lon) {
                     myMap.geoObjects.add(new ymaps.Placemark([station.lat, station.lon], {
-                        hintContent: station.name, balloonContent: `<b>${station.name}</b><br>${station.address}<br>${station.distance} км<br>⭐ ${station.rating || 'N/A'}`
-                    }, { preset: station.status === 'available' ? 'islands#greenGasStationIcon' : 'islands#redGasStationIcon' }));
+                        hintContent: station.name, 
+                        balloonContent: `<b>${station.name}</b><br>${station.address}<br>${station.distance} км<br>⭐ ${station.rating || 'N/A'}`
+                    }, { 
+                        preset: station.status === 'available' ? 'islands#greenGasStationIcon' : 'islands#redGasStationIcon' 
+                    }));
                 }
             });
         }
 
         function toggleFavorite(stationId) {
             const idx = userProfile.favorites.indexOf(stationId);
-            if (idx > -1) { userProfile.favorites.splice(idx, 1); showToast('💔 Удалено из избранного'); }
-            else { userProfile.favorites.push(stationId); showToast('❤️ Добавлено в избранное'); addPoints(5); }
-            storage.set('userProfile', userProfile); updateUI();
+            if (idx > -1) { 
+                userProfile.favorites.splice(idx, 1); 
+                showToast('💔 Удалено из избранного'); 
+            } else { 
+                userProfile.favorites.push(stationId); 
+                showToast('❤️ Добавлено в избранное'); 
+                addPoints(5); 
+            }
+            storage.set('userProfile', userProfile); 
+            updateUI();
             if (stations.length > 0) displayStations(stations);
         }
 
         function renderFavorites() {
             const container = document.getElementById('favorites-content');
+            if (!container) return;
             const favStations = stations.filter(s => userProfile.favorites.includes(s.id));
-            if (favStations.length === 0) { container.innerHTML = '<div class="loading">У вас пока нет избранных АЗС. Добавьте их из поиска!</div>'; return; }
+            if (favStations.length === 0) { 
+                container.innerHTML = '<div class="loading">У вас пока нет избранных АЗС. Добавьте их из поиска!</div>'; 
+                return; 
+            }
             container.innerHTML = '';
             favStations.forEach(station => {
                 const card = document.createElement('div');
                 card.className = 'station-card favorite';
-                card.innerHTML = `<div class="favorite-badge">❤️</div><div class="station-header"><div class="station-top"><div class="station-logo">${station.logo || '⛽'}</div><div class="station-info"><div class="station-name">${station.name}</div><div class="station-address">${station.address}</div><div class="station-distance"> ${station.distance} км</div></div></div><div class="station-actions"><button class="btn btn-primary" onclick="navigateTo('${station.address}')">🗺️ Поехали</button><button class="btn btn-secondary" onclick="toggleFavorite('${station.id}')">💔 Убрать</button></div></div>`;
+                card.innerHTML = `<div class="favorite-badge">❤️</div><div class="station-header"><div class="station-top"><div class="station-logo">${station.logo || '⛽'}</div><div class="station-info"><div class="station-name">${station.name}</div><div class="station-address">${station.address}</div><div class="station-distance">📍 ${station.distance} км</div></div></div><div class="station-actions"><button class="btn btn-primary" onclick="navigateTo('${station.address}')">🗺️ Поехали</button><button class="btn btn-secondary" onclick="toggleFavorite('${station.id}')"> Убрать</button></div></div>`;
                 container.appendChild(card);
             });
         }
 
-        // 🆕 ОБНОВЛЁННАЯ ФУНКЦИЯ: Запрашивает историю цен с бэкенда
         async function renderPriceHistory() {
             const container = document.getElementById('history-content');
+            if (!container) return;
             container.innerHTML = '<div class="loading">Загрузка истории цен...</div>';
 
             try {
-                // Берем ID первой АЗС из найденных, или используем демо ID
                 let stationId = 1;
                 if (stations.length > 0) {
                     stationId = stations[0].id;
                 } else {
-                    // Если станций нет, попробуем получить все станции
                     const allStationsResponse = await fetch(`${BACKEND_URL}/api/stations`);
                     if (allStationsResponse.ok) {
                         const allStations = await allStationsResponse.json();
@@ -491,7 +559,6 @@
                     const data = await response.json();
                     const history = data.history;
 
-                    // Проверяем, есть ли данные
                     if (!history || history.length === 0) {
                         container.innerHTML = '<div class="loading">📊 История цен пока пуста. Данные появятся после первой синхронизации с 2ГИС.</div>';
                         return;
@@ -516,19 +583,31 @@
                                 data: prices,
                                 borderColor: '#0077FF',
                                 backgroundColor: 'rgba(0, 119, 255, 0.1)',
-                                borderWidth: 2, fill: true, tension: 0.4
+                                borderWidth: 2, 
+                                fill: true, 
+                                tension: 0.4
                             }]
                         },
                         options: {
-                            responsive: true, maintainAspectRatio: false,
-                            plugins: { legend: { labels: { color: textColor } } },
+                            responsive: true, 
+                            maintainAspectRatio: false,
+                            plugins: { 
+                                legend: { 
+                                    labels: { 
+                                        color: textColor 
+                                    } 
+                                } 
+                            },
                             scales: {
                                 y: {
                                     ticks: { color: textColor },
                                     grid: { color: gridColor },
                                     beginAtZero: false
                                 },
-                                x: { ticks: { color: textColor }, grid: { color: gridColor } }
+                                x: { 
+                                    ticks: { color: textColor }, 
+                                    grid: { color: gridColor } 
+                                }
                             }
                         }
                     });
@@ -563,6 +642,7 @@
 
         function renderAllAchievements() {
             const container = document.getElementById('achievements-content');
+            if (!container) return;
             const allAchievements = [
                 { id: 'first_report', name: '🎯 Первый отчёт', desc: 'Отправьте первый отчёт о топливе', unlocked: userProfile.achievements.includes('first_report') },
                 { id: '10_reports', name: '🔥 10 отчётов', desc: 'Отправьте 10 отчётов', unlocked: userProfile.achievements.includes('10_reports') },
@@ -581,29 +661,46 @@
         function addPoints(points) {
             userProfile.points += points;
             const newLevel = Math.floor(userProfile.points / 100) + 1;
-            if (newLevel > userProfile.level) { userProfile.level = newLevel; showToast(`🎉 Новый уровень: ${newLevel}!`); }
-            storage.set('userProfile', userProfile); updateUI();
+            if (newLevel > userProfile.level) { 
+                userProfile.level = newLevel; 
+                showToast(`🎉 Новый уровень: ${newLevel}!`); 
+            }
+            storage.set('userProfile', userProfile); 
+            updateUI();
         }
 
         function unlockAchievement(id) {
             if (!userProfile.achievements.includes(id)) {
-                userProfile.achievements.push(id); storage.set('userProfile', userProfile); updateUI(); showToast('🏆 Новое достижение!');
+                userProfile.achievements.push(id); 
+                storage.set('userProfile', userProfile); 
+                updateUI(); 
+                showToast('🏆 Новое достижение!');
             }
         }
 
         function reportFuel(stationId, status) {
-            if (!userData) { showToast('Сначала войдите через VK', 'error'); return; }
-            userProfile.reports++; addPoints(10);
+            if (!userData) { 
+                showToast('Сначала войдите через VK', 'error'); 
+                return; 
+            }
+            userProfile.reports++; 
+            addPoints(10);
             if (userProfile.reports === 1) unlockAchievement('first_report');
             if (userProfile.reports === 10) unlockAchievement('10_reports');
             showToast(status === 'available' ? '✅ Спасибо за отчёт! +10 баллов' : '❌ Отчёт принят. +10 баллов', 'success');
         }
 
         function subscribe(stationId) {
-            if (!userData) { showToast('Сначала войдите через VK', 'error'); return; }
+            if (!userData) { 
+                showToast('Сначала войдите через VK', 'error'); 
+                return; 
+            }
             vkBridge.send('VKWebAppSubscribeCommunity', { group_id: 241157642 }).then(() => {
-                showToast('🔔 Вы подписались на уведомления!', 'success'); addPoints(15);
-            }).catch(() => { showToast('Подписка оформлена (демо)', 'success'); });
+                showToast(' Вы подписались на уведомления!', 'success'); 
+                addPoints(15);
+            }).catch(() => { 
+                showToast('Подписка оформлена (демо)', 'success'); 
+            });
         }
 
         function showStationDetails(stationId) {
@@ -611,6 +708,8 @@
             if (!station) return;
             const modal = document.getElementById('station-modal');
             const content = document.getElementById('modal-content');
+            if (!content || !modal) return;
+            
             content.innerHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <div style="width: 80px; height: 80px; border-radius: 20px; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; margin: 0 auto 12px;">${station.logo || '⛽'}</div>
@@ -641,38 +740,54 @@
             modal.classList.add('show');
         }
 
-        function closeModal() { document.getElementById('station-modal').classList.remove('show'); }
+        function closeModal() { 
+            const modal = document.getElementById('station-modal');
+            if (modal) modal.classList.remove('show'); 
+        }
+        
         function navigateTo(address) {
-            vkBridge.send('VKWebAppOpenLocation', { lat: userCoords?.lat || 55.751244, lon: userCoords?.lon || 37.618423 }).catch(() => {
+            const lat = userCoords?.lat || 55.751244;
+            const lon = userCoords?.lon || 37.618423;
+            
+            vkBridge.send('VKWebAppOpenLocation', { lat: lat, lon: lon }).catch(() => {
                 window.open(`https://maps.yandex.ru/?text=${encodeURIComponent(address)}`, '_blank');
             });
         }
+        
         function openChat() {
             const groupId = 241157642;
-            vkBridge.send('VKWebAppOpenCommunityMessages', { group_id: groupId }).then(() => { console.log('✅ Чат открыт'); }).catch(() => {
-                vkBridge.send('VKWebAppOpenLink', { link: `https://vk.com/im?sel=-${groupId}` }).catch(() => { window.open(`https://vk.com/im?sel=-${groupId}`, '_blank'); });
+            vkBridge.send('VKWebAppOpenCommunityMessages', { group_id: groupId }).then(() => { 
+                console.log('✅ Чат открыт'); 
+            }).catch(() => {
+                vkBridge.send('VKWebAppOpenLink', { link: `https://vk.com/im?sel=-${groupId}` }).catch(() => { 
+                    window.open(`https://vk.com/im?sel=-${groupId}`, '_blank'); 
+                });
             });
         }
+        
         function showToast(message, type = '') {
             const toast = document.getElementById('toast');
-            toast.textContent = message; toast.className = 'toast ' + type; toast.classList.add('show');
+            if (!toast) return;
+            toast.textContent = message; 
+            toast.className = 'toast ' + type; 
+            toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
-        document.getElementById('station-modal').addEventListener('click', (e) => { if (e.target.id === 'station-modal') closeModal(); });
-        document.getElementById('city-input')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') { const city = this.value.trim(); if (city) showToast(`🔍 Ищем: ${city}`); }
-        });
-
-        function openYandexMaps() {
-            const lat = userCoords?.lat || 55.751244;
-            const lon = userCoords?.lon || 37.618423;
-
-            // Открываем Яндекс Карты с метками всех АЗС
-            let points = stations.map(s => `${s.lat},${s.lon}`).join('~');
-            const url = `https://yandex.ru/maps/?ll=${lon}%2C${lat}&spn=0.1%2C0.1&l=map${points ? `&pt=${points}` : ''}`;
-
-            vkBridge.send('VKWebAppOpenLink', { link: url }).catch(() => {
-                window.open(url, '_blank');
+        
+        const modalEl = document.getElementById('station-modal');
+        if (modalEl) {
+            modalEl.addEventListener('click', (e) => { 
+                if (e.target.id === 'station-modal') closeModal(); 
+            });
+        }
+        
+        const cityInput = document.getElementById('city-input');
+        if (cityInput) {
+            cityInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') { 
+                    const city = this.value.trim(); 
+                    if (city) showToast(`🔍 Ищем: ${city}`); 
+                }
             });
         }
     </script>
