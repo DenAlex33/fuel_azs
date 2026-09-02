@@ -31,7 +31,7 @@
         .header-content { display: flex; justify-content: space-between; align-items: center; }
         .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
         .header-actions { display: flex; gap: 8px; }
-        .icon-btn { width: 40px; height: 40px; border: none; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: var(--transition); }
+        .icon-btn { width: 40px; height: 40px; border: none; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: var(--transition); position: relative; }
         .icon-btn:active { transform: scale(0.9); background: var(--border); }
 
         .user-bar { background: var(--card-bg); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
@@ -178,7 +178,6 @@
         .toast.success { background: var(--success); color: white; }
         .toast.error { background: var(--danger); color: white; }
 
-        /* Уведомление об добавлении в избранное */
         .favorite-notification {
             position: fixed;
             bottom: 100px;
@@ -245,7 +244,6 @@
         .achievement { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: linear-gradient(135deg, #FFD700, #FFA500); color: white; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 4px; animation: popIn 0.3s ease-out; }
         @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Пустое состояние для избранного */
         .empty-favorites {
             text-align: center;
             padding: 40px 20px;
@@ -336,15 +334,14 @@
             <button onclick="useMyLocation()" class="btn btn-primary" style="margin-bottom: 16px;">📍 Моё местоположение</button>
             <div id="stations-list-mobile"></div>
         </div>
-            <div id="tab-favorites" style="display: none;">
-                <div id="favorites-list" style="padding: 16px;">
-                    <div class="loading">Загрузка...</div>
-                </div>
+        <div id="tab-favorites" style="display: none;">
+            <div id="favorites-list" style="padding: 16px;">
+                <div class="loading">Загрузка...</div>
             </div>
+        </div>
         <div id="tab-achievements" style="display: none;"></div>
     </div>
 
-    <!-- Уведомление об добавлении в избранное -->
     <div class="favorite-notification" id="favorite-notification">
         <div class="favorite-notification-icon">❤️</div>
         <div class="favorite-notification-text">
@@ -432,7 +429,7 @@
     <script>
         const API_URL = 'https://it-reutov.start-ovh.ru/api/index.php';
         let myMap, userData = null, userCoords = null, stations = [], selectedStation = null;
-        let lastAddedFavoriteId = null; // ID последней добавленной в избранное станции
+        let lastAddedFavoriteId = null;
 
         const STATION_LOGOS = {
             'Лукойл': { color: '#E31E24', icon: 'ЛУК' }, 'Газпромнефть': { color: '#00A651', icon: 'ГПН' },
@@ -475,15 +472,22 @@
             if (levelEl) levelEl.textContent = userProfile.level;
             renderAchievements();
             updateStats();
-            updateFavoriteBadge(); // Обновляем счётчик избранного
+            updateFavoriteBadge();
         }
 
         function updateFavoriteBadge() {
-            const badge = document.getElementById('fav-count');
-            if (badge) {
-                const count = userProfile.favorites.length;
-                badge.textContent = count;
-                badge.style.display = count > 0 ? 'inline-block' : 'none';
+            const count = userProfile.favorites.length;
+            
+            const tabBadge = document.getElementById('fav-count');
+            if (tabBadge) {
+                tabBadge.textContent = count;
+                tabBadge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+
+            const headerBadge = document.getElementById('fav-badge');
+            if (headerBadge) {
+                headerBadge.textContent = count;
+                headerBadge.style.display = count > 0 ? 'inline-block' : 'none';
             }
         }
 
@@ -526,7 +530,7 @@
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 if (data.error) {
-                    showToast("️ Ошибка сервера", "error");
+                    showToast("⚠️ Ошибка сервера", "error");
                     allStations = DEMO_STATIONS;
                 } else {
                     allStations = data.stations || [];
@@ -662,7 +666,7 @@
                     })
                     .slice(0, 10);
 
-                commentsHtml = '<div class="comments-section"><div class="comments-title"> Последние отчёты</div>';
+                commentsHtml = '<div class="comments-section"><div class="comments-title">Последние отчёты</div>';
                 sortedReports.forEach(report => {
                     commentsHtml += `
                         <div class="comment-item">
@@ -804,7 +808,7 @@
             if (limitMin > 0 && limitMax > 0 && limitMin > limitMax) { showToast('❌ Мин. лимит > макс.', 'error'); return; }
 
             try {
-                showToast(' Отправка...');
+                showToast('⏳ Отправка...');
                 const response = await fetch(`${API_URL}?action=add_report`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -839,8 +843,8 @@
             const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
 
             const confirmed = confirm(
-                ` ${isAvailable ? 'Подтвердить наличие' : 'Сообщить об отсутствии'} ${fuelNames[fuelType]}?\n\n` +
-                ` Последняя цена: ${fuel.price.toFixed(2)} ₽\n` +
+                `${isAvailable ? 'Подтвердить наличие' : 'Сообщить об отсутствии'} ${fuelNames[fuelType]}?\n\n` +
+                `Последняя цена: ${fuel.price.toFixed(2)} ₽\n` +
                 `📏 Лимит: ${fuel.limit_min || 0} – ${fuel.limit_max || 0} л\n\n` +
                 `Нажмите OK для подтверждения или Отмена для развёрнутого отчёта`
             );
@@ -955,7 +959,6 @@
             return `${Math.floor(days / 30)} мес назад`;
         }
 
-        // ========== УЛУЧШЕННАЯ ФУНКЦИЯ ИЗБРАННОГО ==========
         function toggleFavorite(stationId) {
             const station = allStations.find(s => s.id == stationId);
             const stationName = station ? station.name : 'АЗС';
@@ -979,14 +982,12 @@
             loadStationsOnMap();
             if (stations.length > 0) renderStationsList(stations);
 
-            // Если вкладка избранного уже открыта — обновить её
             const favTab = document.getElementById('tab-favorites');
             if (favTab && favTab.style.display !== 'none') {
                 renderFavorites();
             }
         }
 
-        // Открыть панель избранного
         function toggleFavoritesPanel() {
             const panel = document.getElementById('side-panel');
             const overlay = document.getElementById('panel-overlay');
@@ -1001,7 +1002,6 @@
             }
         }
 
-        // Загрузить избранное в боковую панель
         function loadFavoritesToPanel() {
             const panel = document.getElementById('side-panel');
             const nameEl = document.getElementById('panel-station-name');
@@ -1045,7 +1045,6 @@
             }).join('');
         }
 
-        // Удалить из избранного
         function removeFromFavorites(stationId) {
             const idx = userProfile.favorites.indexOf(stationId);
             if (idx > -1) {
@@ -1057,28 +1056,26 @@
             }
         }
 
-        // Склонение слов
         function getStationWord(count) {
             if (count === 1) return 'АЗС';
             if (count >= 2 && count <= 4) return 'АЗС';
             return 'АЗС';
         }
 
-        // Переключение вкладок
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.closest('.tab').classList.add('active');
+            const targetTab = document.querySelector(`.tab[data-tab="${tabName}"]`);
+            if (targetTab) targetTab.classList.add('active');
 
             ['search', 'favorites', 'achievements'].forEach(t => {
                 document.getElementById(`tab-${t}`).style.display = t === tabName ? 'block' : 'none';
             });
 
-            if (tabName === 'favorites') {
-                loadFavoritesList();
-            }
+            if (tabName === 'search' && userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
+            else if (tabName === 'favorites') renderFavorites();
+            else if (tabName === 'achievements') renderAllAchievements();
         }
 
-        // Загрузить список избранного во вкладку
         function loadFavoritesList() {
             const container = document.getElementById('favorites-list');
             const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
@@ -1108,7 +1105,6 @@
             }).join('');
         }
 
-        // Показ уведомления об добавлении в избранное
         function showFavoriteNotification(stationName, isAdding) {
             const notif = document.getElementById('favorite-notification');
             const title = document.getElementById('fav-notif-title');
@@ -1128,29 +1124,23 @@
             }, 4000);
         }
 
-        // Открыть избранное по кнопке из уведомления
         function openFavoritesFromNotification() {
             const notif = document.getElementById('favorite-notification');
             notif.classList.remove('show');
 
-            // На мобильных — открыть bottom-sheet
             if (window.innerWidth < 768) {
                 openBottomSheet();
                 switchTab('favorites');
             } else {
-                // На десктопе — показать toast с информацией
                 showToast('❤️ Избранное обновлено', 'success');
-                // Можно также открыть боковую панель с избранным
                 openFavoritesSidePanel();
             }
         }
 
-        // Открыть bottom-sheet
         function openBottomSheet() {
             document.getElementById('bottom-sheet').classList.add('show');
         }
 
-        // Боковая панель с избранным (для десктопа)
         function openFavoritesSidePanel() {
             const panel = document.getElementById('side-panel');
             const overlay = document.getElementById('panel-overlay');
@@ -1197,29 +1187,6 @@
             updateUI();
         }
 
-        function addToFavorites(stationId) {
-            if (!userProfile.favorites.includes(stationId)) {
-                userProfile.favorites.push(stationId);
-                storage.set('userProfile', userProfile);
-                updateUI();
-                showToast('❤️ Добавлено в избранное', 'success');
-
-                // Обновить бейджи
-                const badge = document.getElementById('fav-badge');
-                const tabBadge = document.getElementById('tab-fav-count');
-                const count = userProfile.favorites.length;
-
-                if (badge) {
-                    badge.textContent = count;
-                    badge.style.display = count > 0 ? 'inline-block' : 'none';
-                }
-                if (tabBadge) {
-                    tabBadge.textContent = count;
-                    tabBadge.style.display = count > 0 ? 'inline-block' : 'none';
-                }
-            }
-        }
-
         function unlockAchievement(id) {
             if (!userProfile.achievements.includes(id)) {
                 userProfile.achievements.push(id);
@@ -1233,6 +1200,7 @@
             document.getElementById('add-station-panel').classList.add('show');
             document.getElementById('add-station-overlay').classList.add('show');
         }
+        
         function closeAddStationModal() {
             document.getElementById('add-station-panel').classList.remove('show');
             document.getElementById('add-station-overlay').classList.remove('show');
@@ -1300,23 +1268,6 @@
             document.body.removeChild(link);
         }
 
-        // ========== ИСПРАВЛЕННЫЙ SWITCHTAB ==========
-        function switchTab(tabName) {
-            // Снимаем active со всех вкладок
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            // Находим нужную вкладку по data-атрибуту (работает и при программном вызове)
-            const targetTab = document.querySelector(`.tab[data-tab="${tabName}"]`);
-            if (targetTab) targetTab.classList.add('active');
-
-            ['search', 'favorites', 'achievements'].forEach(t => {
-                document.getElementById(`tab-${t}`).style.display = t === tabName ? 'block' : 'none';
-            });
-
-            if (tabName === 'search' && userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
-            else if (tabName === 'favorites') renderFavorites();
-            else if (tabName === 'achievements') renderAllAchievements();
-        }
-
         function renderFavorites() {
             const container = document.getElementById('tab-favorites');
             const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
@@ -1327,7 +1278,7 @@
                         <div class="empty-favorites-icon">❤️</div>
                         <div class="empty-favorites-title">Пока пусто</div>
                         <div class="empty-favorites-text">Нажмите "❤️ В избранное" на карточке АЗС,<br>чтобы добавить её сюда</div>
-                        <button class="empty-favorites-btn" onclick="switchTab('search')"> Найти АЗС</button>
+                        <button class="empty-favorites-btn" onclick="switchTab('search')">🔍 Найти АЗС</button>
                     </div>`;
                 return;
             }
@@ -1346,13 +1297,11 @@
                 </div>`;
             }).join('');
 
-            // Прокрутить к последней добавленной станции
             if (lastAddedFavoriteId) {
                 setTimeout(() => {
                     const highlightEl = container.querySelector('.station-item.highlight');
                     if (highlightEl) {
                         highlightEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        // Убрать подсветку через 3 секунды
                         setTimeout(() => {
                             highlightEl.classList.remove('highlight');
                             lastAddedFavoriteId = null;
