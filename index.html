@@ -473,20 +473,20 @@
 
         // ================= 3. ХРАНИЛИЩЕ (LocalStorage) =================
         const storage = {
-            get: (key, defaultValue) => { 
-                try { 
-                    const item = localStorage.getItem(key); 
-                    return item ? JSON.parse(item) : defaultValue; 
-                } catch { 
-                    return defaultValue; 
-                } 
+            get: (key, defaultValue) => {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : defaultValue;
+                } catch {
+                    return defaultValue;
+                }
             },
-            set: (key, value) => { 
-                try { 
-                    localStorage.setItem(key, JSON.stringify(value)); 
-                } catch (e) { 
-                    console.error('Storage error:', e); 
-                } 
+            set: (key, value) => {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (e) {
+                    console.error('Storage error:', e);
+                }
             }
         };
 
@@ -547,26 +547,31 @@
         }
 
         function initMap() {
-            if (typeof ymaps === 'undefined') {
-                console.error('❌ Яндекс Карты API не загружен');
-                return;
-            }
-            try {
-                ymaps.ready(function () {
-                    if (!myMap) {
-                        const isDark = document.body.classList.contains('dark-theme');
-                        myMap = new ymaps.Map("map", {
-                            center: [55.751244, 37.618423],
-                            zoom: 10,
-                            controls: ['zoomControl', 'geolocationControl'],
-                            type: isDark ? 'yandex#dark' : 'yandex#map'
-                        });
-                        console.log('✅ Карта успешно инициализирована');
-                    }
-                });
-            } catch (err) {
-                console.error('Ошибка инициализации:', err);
-            }
+            return new Promise((resolve) => {
+                if (typeof ymaps === 'undefined') {
+                    console.error('❌ Яндекс Карты API не загружен');
+                    resolve(); // Разрешаем, чтобы код не завис навсегда
+                    return;
+                }
+                try {
+                    ymaps.ready(function () {
+                        if (!myMap) {
+                            const isDark = document.body.classList.contains('dark-theme');
+                            myMap = new ymaps.Map("map", {
+                                center: [55.751244, 37.618423],
+                                zoom: 10,
+                                controls: ['zoomControl', 'geolocationControl'],
+                                type: isDark ? 'yandex#dark' : 'yandex#map'
+                            });
+                            console.log('✅ Карта успешно инициализирована');
+                        }
+                        resolve(); // <--- ГЛАВНОЕ: Сообщаем, что карта готова!
+                    });
+                } catch (err) {
+                    console.error('Ошибка инициализации:', err);
+                    resolve();
+                }
+            });
         }
 
         async function loadStationsData() {
@@ -574,7 +579,7 @@
                 console.log("🔄 Загрузка данных о заправках из stations.json...");
                 const response = await fetch('stations.json');
                 if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                
+
                 const data = await response.json();
                 allStations = data.stations || [];
                 console.log(`✅ Загружено ${allStations.length} АЗС из файла`);
@@ -589,7 +594,7 @@
             renderAchievements();
             updateUI();
             loadStationsOnMap();
-            
+
             if (userCoords) {
                 searchStationsByCoords(userCoords.lat, userCoords.lon);
             }
@@ -738,7 +743,7 @@
         function toggleInfoBlock() {
             const content = document.getElementById('info-content');
             const arrow = document.getElementById('info-arrow');
-            if (content.classList.contains('show')) { content.classList.remove('show'); arrow.classList.remove('show'); } 
+            if (content.classList.contains('show')) { content.classList.remove('show'); arrow.classList.remove('show'); }
             else { content.classList.add('show'); arrow.classList.add('show'); }
         }
 
@@ -798,7 +803,7 @@
 
             station.fuels[fuelType] = { price: price, available: isAvailable, updated: Date.now() };
             const report = { stationId, userId: userData?.id || 'guest', fuelType, status: isAvailable ? 'available' : 'unavailable', price, queue, comment, timestamp: Date.now() };
-            
+
             if (!station.reports) station.reports = [];
             station.reports.push(report);
             userReports.push(report);
@@ -886,7 +891,7 @@
 
         function toggleFavorite(stationId) {
             const idx = userProfile.favorites.indexOf(stationId);
-            if (idx > -1) { userProfile.favorites.splice(idx, 1); showToast('💔 Удалено из избранного'); } 
+            if (idx > -1) { userProfile.favorites.splice(idx, 1); showToast('💔 Удалено из избранного'); }
             else { userProfile.favorites.push(stationId); showToast('❤️ Добавлено в избранное'); addPoints(5); }
             storage.set('userProfile', userProfile);
             updateUI();
