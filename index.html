@@ -150,11 +150,19 @@
         .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
 
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
-        .tab { padding: 10px 16px; background: var(--bg); border: none; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: var(--transition); }
+        .tab { padding: 10px 16px; background: var(--bg); border: none; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: var(--transition); display: flex; align-items: center; gap: 6px; }
         .tab.active { background: var(--primary); color: white; }
+        .tab-badge { background: var(--danger); color: white; padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; min-width: 20px; text-align: center; }
+        .tab.active .tab-badge { background: white; color: var(--primary); }
 
         .station-item { background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px var(--shadow); cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 12px; }
         .station-item:active { transform: scale(0.98); }
+        .station-item.highlight { animation: highlightPulse 2s ease-out; border: 2px solid var(--warning); }
+        @keyframes highlightPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.7); transform: scale(1.02); }
+            50% { box-shadow: 0 0 20px 5px rgba(255, 149, 0, 0.3); }
+            100% { box-shadow: 0 2px 8px var(--shadow); transform: scale(1); }
+        }
         .station-item-logo { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; flex-shrink: 0; font-size: 18px; }
         .station-item-info { flex: 1; min-width: 0; }
         .station-item-name { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
@@ -170,10 +178,105 @@
         .toast.success { background: var(--success); color: white; }
         .toast.error { background: var(--danger); color: white; }
 
+        /* Уведомление об добавлении в избранное */
+        .favorite-notification {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 1500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 90%;
+            border: 2px solid var(--danger);
+        }
+        .favorite-notification.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+        .favorite-notification-icon {
+            font-size: 28px;
+            animation: heartBeat 0.6s ease-out;
+        }
+        @keyframes heartBeat {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .favorite-notification-text {
+            flex: 1;
+            min-width: 0;
+        }
+        .favorite-notification-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text);
+        }
+        .favorite-notification-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .favorite-notification-btn {
+            padding: 8px 14px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .favorite-notification-btn:active { transform: scale(0.95); }
+
         @media (min-width: 768px) { .bottom-sheet { display: none; } .side-panel { max-width: 450px; } }
         .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
         .achievement { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: linear-gradient(135deg, #FFD700, #FFA500); color: white; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 4px; animation: popIn 0.3s ease-out; }
         @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Пустое состояние для избранного */
+        .empty-favorites {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-favorites-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .empty-favorites-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .empty-favorites-text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .empty-favorites-btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -221,9 +324,9 @@
     <div class="bottom-sheet" id="bottom-sheet">
         <div class="sheet-handle"></div>
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('search')">🔍 Поиск</button>
-            <button class="tab" onclick="switchTab('favorites')">❤️ Избранное</button>
-            <button class="tab" onclick="switchTab('achievements')">🏆 Достижения</button>
+            <button class="tab active" data-tab="search" onclick="switchTab('search')">🔍 Поиск</button>
+            <button class="tab" data-tab="favorites" onclick="switchTab('favorites')">❤️ Избранное <span class="tab-badge" id="fav-count">0</span></button>
+            <button class="tab" data-tab="achievements" onclick="switchTab('achievements')">🏆 Достижения</button>
         </div>
         <div id="tab-search">
             <button onclick="useMyLocation()" class="btn btn-primary" style="margin-bottom: 16px;">📍 Моё местоположение</button>
@@ -231,6 +334,16 @@
         </div>
         <div id="tab-favorites" style="display: none;"></div>
         <div id="tab-achievements" style="display: none;"></div>
+    </div>
+
+    <!-- Уведомление об добавлении в избранное -->
+    <div class="favorite-notification" id="favorite-notification">
+        <div class="favorite-notification-icon">❤️</div>
+        <div class="favorite-notification-text">
+            <div class="favorite-notification-title" id="fav-notif-title">Добавлено в избранное</div>
+            <div class="favorite-notification-subtitle" id="fav-notif-subtitle">+5 баллов</div>
+        </div>
+        <button class="favorite-notification-btn" onclick="openFavoritesFromNotification()">Показать</button>
     </div>
 
     <div class="side-panel-overlay" id="panel-overlay" onclick="closeSidePanel()"></div>
@@ -311,6 +424,7 @@
     <script>
         const API_URL = 'https://it-reutov.start-ovh.ru/api/index.php';
         let myMap, userData = null, userCoords = null, stations = [], selectedStation = null;
+        let lastAddedFavoriteId = null; // ID последней добавленной в избранное станции
 
         const STATION_LOGOS = {
             'Лукойл': { color: '#E31E24', icon: 'ЛУК' }, 'Газпромнефть': { color: '#00A651', icon: 'ГПН' },
@@ -353,6 +467,16 @@
             if (levelEl) levelEl.textContent = userProfile.level;
             renderAchievements();
             updateStats();
+            updateFavoriteBadge(); // Обновляем счётчик избранного
+        }
+
+        function updateFavoriteBadge() {
+            const badge = document.getElementById('fav-count');
+            if (badge) {
+                const count = userProfile.favorites.length;
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
         }
 
         function updateStats() {
@@ -394,7 +518,7 @@
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 if (data.error) {
-                    showToast("⚠️ Ошибка сервера", "error");
+                    showToast("️ Ошибка сервера", "error");
                     allStations = DEMO_STATIONS;
                 } else {
                     allStations = data.stations || [];
@@ -500,7 +624,7 @@
                             </div>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <div class="fuel-limits-text" style="font-size: 13px;">📏 ${limitText}</div>
+                            <div class="fuel-limits-text" style="font-size: 13px;"> ${limitText}</div>
                             <div class="fuel-price" style="font-size: 24px;">${fuel.price.toFixed(2)} ₽</div>
                         </div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
@@ -522,16 +646,15 @@
             const stationReports = station.reports || [];
 
             if (stationReports.length > 0) {
-                // ИСПРАВЛЕНИЕ ДЛЯ SAFARI/IPHONE: принудительная замена формата даты
                 const sortedReports = [...stationReports]
                     .sort((a, b) => {
                         const dateA = new Date(a.created_at.replace(' ', 'T') + 'Z').getTime();
                         const dateB = new Date(b.created_at.replace(' ', 'T') + 'Z').getTime();
-                        return dateB - dateA; // От новых к старым
+                        return dateB - dateA;
                     })
                     .slice(0, 10);
 
-                commentsHtml = '<div class="comments-section"><div class="comments-title">📋 Последние отчёты</div>';
+                commentsHtml = '<div class="comments-section"><div class="comments-title"> Последние отчёты</div>';
                 sortedReports.forEach(report => {
                     commentsHtml += `
                         <div class="comment-item">
@@ -581,7 +704,7 @@
                     </div>
                 </div>
                 <div class="action-buttons">
-                    <button class="btn btn-danger btn-large" onclick="toggleFavorite('${station.id}')">${isFavorite ? '💔 Убрать' : '❤️ В избранное'}</button>
+                    <button class="btn ${isFavorite ? 'btn-danger' : 'btn-primary'} btn-large" onclick="toggleFavorite('${station.id}')">${isFavorite ? '💔 Убрать из избранного' : '❤️ В избранное'}</button>
                 </div>`;
         }
 
@@ -673,7 +796,7 @@
             if (limitMin > 0 && limitMax > 0 && limitMin > limitMax) { showToast('❌ Мин. лимит > макс.', 'error'); return; }
 
             try {
-                showToast('💾 Отправка...');
+                showToast(' Отправка...');
                 const response = await fetch(`${API_URL}?action=add_report`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -708,8 +831,8 @@
             const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
 
             const confirmed = confirm(
-                `📝 ${isAvailable ? 'Подтвердить наличие' : 'Сообщить об отсутствии'} ${fuelNames[fuelType]}?\n\n` +
-                `💰 Последняя цена: ${fuel.price.toFixed(2)} ₽\n` +
+                ` ${isAvailable ? 'Подтвердить наличие' : 'Сообщить об отсутствии'} ${fuelNames[fuelType]}?\n\n` +
+                ` Последняя цена: ${fuel.price.toFixed(2)} ₽\n` +
                 `📏 Лимит: ${fuel.limit_min || 0} – ${fuel.limit_max || 0} л\n\n` +
                 `Нажмите OK для подтверждения или Отмена для развёрнутого отчёта`
             );
@@ -803,7 +926,6 @@
             if (!timestamp) return 'только что';
             let date;
             if (typeof timestamp === 'string') {
-                // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ ДЛЯ SAFARI/IPHONE
                 const isoString = timestamp.replace(' ', 'T') + 'Z';
                 date = new Date(isoString);
             } else {
@@ -825,15 +947,116 @@
             return `${Math.floor(days / 30)} мес назад`;
         }
 
+        // ========== УЛУЧШЕННАЯ ФУНКЦИЯ ИЗБРАННОГО ==========
         function toggleFavorite(stationId) {
+            const station = allStations.find(s => s.id == stationId);
+            const stationName = station ? station.name : 'АЗС';
             const idx = userProfile.favorites.indexOf(stationId);
-            if (idx > -1) { userProfile.favorites.splice(idx, 1); showToast('💔 Удалено'); }
-            else { userProfile.favorites.push(stationId); showToast('❤️ Добавлено'); addPoints(5); }
+            const isAdding = idx === -1;
+
+            if (isAdding) {
+                userProfile.favorites.push(stationId);
+                lastAddedFavoriteId = stationId;
+                addPoints(5);
+                showFavoriteNotification(stationName, true);
+            } else {
+                userProfile.favorites.splice(idx, 1);
+                lastAddedFavoriteId = null;
+                showToast(`💔 "${stationName}" удалено из избранного`);
+            }
+
             storage.set('userProfile', userProfile);
             updateUI();
             if (selectedStation && selectedStation.id == stationId) renderPanelContent(selectedStation);
             loadStationsOnMap();
             if (stations.length > 0) renderStationsList(stations);
+
+            // Если вкладка избранного уже открыта — обновить её
+            const favTab = document.getElementById('tab-favorites');
+            if (favTab && favTab.style.display !== 'none') {
+                renderFavorites();
+            }
+        }
+
+        // Показ уведомления об добавлении в избранное
+        function showFavoriteNotification(stationName, isAdding) {
+            const notif = document.getElementById('favorite-notification');
+            const title = document.getElementById('fav-notif-title');
+            const subtitle = document.getElementById('fav-notif-subtitle');
+
+            if (isAdding) {
+                title.textContent = `❤️ "${stationName}" в избранном`;
+                subtitle.textContent = '+5 баллов • Нажмите "Показать"';
+            } else {
+                title.textContent = `💔 "${stationName}" удалено`;
+                subtitle.textContent = 'Убрано из избранного';
+            }
+
+            notif.classList.add('show');
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 4000);
+        }
+
+        // Открыть избранное по кнопке из уведомления
+        function openFavoritesFromNotification() {
+            const notif = document.getElementById('favorite-notification');
+            notif.classList.remove('show');
+
+            // На мобильных — открыть bottom-sheet
+            if (window.innerWidth < 768) {
+                openBottomSheet();
+                switchTab('favorites');
+            } else {
+                // На десктопе — показать toast с информацией
+                showToast('❤️ Избранное обновлено', 'success');
+                // Можно также открыть боковую панель с избранным
+                openFavoritesSidePanel();
+            }
+        }
+
+        // Открыть bottom-sheet
+        function openBottomSheet() {
+            document.getElementById('bottom-sheet').classList.add('show');
+        }
+
+        // Боковая панель с избранным (для десктопа)
+        function openFavoritesSidePanel() {
+            const panel = document.getElementById('side-panel');
+            const overlay = document.getElementById('panel-overlay');
+            const nameEl = document.getElementById('panel-station-name');
+            const addrEl = document.getElementById('panel-station-address');
+            const content = document.getElementById('panel-content');
+
+            nameEl.textContent = '❤️ Избранное';
+            addrEl.textContent = `${userProfile.favorites.length} АЗС в избранном`;
+
+            const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
+            if (favStations.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-favorites">
+                        <div class="empty-favorites-icon">❤️</div>
+                        <div class="empty-favorites-title">Пока пусто</div>
+                        <div class="empty-favorites-text">Добавляйте АЗС в избранное,<br>чтобы быстро находить их</div>
+                    </div>`;
+            } else {
+                content.innerHTML = favStations.map(station => {
+                    const logo = getStationLogo(station.name);
+                    const isLastAdded = station.id === lastAddedFavoriteId;
+                    return `<div class="station-item ${isLastAdded ? 'highlight' : ''}" onclick="openStationPanel('${station.id}')">
+                        <div class="station-item-logo" style="background: ${logo.color}">${logo.icon}</div>
+                        <div class="station-item-info">
+                            <div class="station-item-name">${station.name} ⭐ ${station.rating} <span class="favorite-icon">❤️</span></div>
+                            <div class="station-item-address">${station.address}</div>
+                            <div class="station-item-fuel">${Object.entries(station.fuels).map(([type, fuel]) => `<span class="fuel-tag ${fuel.available ? 'available' : ''}">${type.toUpperCase()}: ${fuel.price.toFixed(0)}₽</span>`).join('')}</div>
+                        </div>
+                        <button class="btn btn-danger" style="padding: 8px 12px; font-size: 12px; width: auto; flex-shrink: 0;" onclick="event.stopPropagation(); toggleFavorite('${station.id}')">Убрать</button>
+                    </div>`;
+                }).join('');
+            }
+
+            panel.classList.add('show');
+            overlay.classList.add('show');
         }
 
         function addPoints(points) {
@@ -910,12 +1133,11 @@
 
         function openYandexNavi(lat, lon) {
             if (!lat || !lon) { showToast('❌ Нет координат', 'error'); return; }
-            
+
             const userLat = userCoords?.lat || 55.7558;
             const userLon = userCoords?.lon || 37.6173;
             const mapsUrl = `https://yandex.ru/maps/?rtext=${userLat},${userLon}~${lat},${lon}&rtt=auto`;
-            
-            // ИСПРАВЛЕНИЕ ДЛЯ ТЕЛЕФОНОВ: создание временной ссылки надёжнее работает в WebView VK
+
             const link = document.createElement('a');
             link.href = mapsUrl;
             link.target = '_blank';
@@ -925,12 +1147,18 @@
             document.body.removeChild(link);
         }
 
+        // ========== ИСПРАВЛЕННЫЙ SWITCHTAB ==========
         function switchTab(tabName) {
+            // Снимаем active со всех вкладок
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            if (event && event.target) event.target.classList.add('active');
+            // Находим нужную вкладку по data-атрибуту (работает и при программном вызове)
+            const targetTab = document.querySelector(`.tab[data-tab="${tabName}"]`);
+            if (targetTab) targetTab.classList.add('active');
+
             ['search', 'favorites', 'achievements'].forEach(t => {
                 document.getElementById(`tab-${t}`).style.display = t === tabName ? 'block' : 'none';
             });
+
             if (tabName === 'search' && userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
             else if (tabName === 'favorites') renderFavorites();
             else if (tabName === 'achievements') renderAllAchievements();
@@ -939,14 +1167,46 @@
         function renderFavorites() {
             const container = document.getElementById('tab-favorites');
             const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
-            if (favStations.length === 0) { container.innerHTML = '<div class="loading">Нет избранных АЗС</div>'; return; }
+
+            if (favStations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-favorites">
+                        <div class="empty-favorites-icon">❤️</div>
+                        <div class="empty-favorites-title">Пока пусто</div>
+                        <div class="empty-favorites-text">Нажмите "❤️ В избранное" на карточке АЗС,<br>чтобы добавить её сюда</div>
+                        <button class="empty-favorites-btn" onclick="switchTab('search')"> Найти АЗС</button>
+                    </div>`;
+                return;
+            }
+
             container.innerHTML = favStations.map(station => {
                 const logo = getStationLogo(station.name);
-                return `<div class="station-item" onclick="openStationPanel('${station.id}')">
+                const isLastAdded = station.id === lastAddedFavoriteId;
+                return `<div class="station-item ${isLastAdded ? 'highlight' : ''}" onclick="openStationPanel('${station.id}')">
                     <div class="station-item-logo" style="background: ${logo.color}">${logo.icon}</div>
-                    <div class="station-item-info"><div class="station-item-name">${station.name} ⭐ ${station.rating} <span class="favorite-icon">❤️</span></div><div class="station-item-address">${station.address}</div></div>
+                    <div class="station-item-info">
+                        <div class="station-item-name">${station.name} ⭐ ${station.rating} <span class="favorite-icon">❤️</span></div>
+                        <div class="station-item-address">${station.address}</div>
+                        <div class="station-item-fuel">${Object.entries(station.fuels).map(([type, fuel]) => `<span class="fuel-tag ${fuel.available ? 'available' : ''}">${type.toUpperCase()}: ${fuel.price.toFixed(0)}₽</span>`).join('')}</div>
+                    </div>
+                    <button class="btn btn-danger" style="padding: 8px 12px; font-size: 12px; width: auto; flex-shrink: 0;" onclick="event.stopPropagation(); toggleFavorite('${station.id}')">Убрать</button>
                 </div>`;
             }).join('');
+
+            // Прокрутить к последней добавленной станции
+            if (lastAddedFavoriteId) {
+                setTimeout(() => {
+                    const highlightEl = container.querySelector('.station-item.highlight');
+                    if (highlightEl) {
+                        highlightEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Убрать подсветку через 3 секунды
+                        setTimeout(() => {
+                            highlightEl.classList.remove('highlight');
+                            lastAddedFavoriteId = null;
+                        }, 3000);
+                    }
+                }, 100);
+            }
         }
 
         function renderAllAchievements() {
