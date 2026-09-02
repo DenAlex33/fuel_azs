@@ -551,13 +551,28 @@
                 const data = await response.json();
                 if (data.error) {
                     showToast("⚠️ Ошибка сервера", "error");
-                    allStations = DEMO_STATIONS;
+                    // Если ошибка сервера, используем localStorage
+                    if (allStations.length > 0) {
+                        updateStats();
+                        renderAchievements();
+                        updateUI();
+                        loadStationsOnMap();
+                        if (userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
+                    }
                 } else {
                     allStations = data.stations || [];
+                    // Сохраняем в localStorage
+                    localStorage.setItem('allStations', JSON.stringify(allStations));
                 }
             } catch (error) {
-                allStations = DEMO_STATIONS;
+                // При ошибке сети используем localStorage
+                console.log('Используем данные из localStorage');
+                if (allStations.length > 0) {
+                    updateStats();
+                    loadStationsOnMap();
+                }
             }
+            
             updateStats();
             renderAchievements();
             updateUI();
@@ -824,6 +839,60 @@
                     <button class="btn btn-success" onclick="submitReport('${stationId}', '${fuelType}')">✅ Отправить отчёт (+10 баллов)</button>
                     <button class="btn" style="background: var(--bg); margin-top: 10px;" onclick="renderPanelContent(allStations.find(s => s.id == '${stationId}'))">← Назад</button>
                 </div>`;
+        }
+
+        // Загрузка данных из localStorage при старте
+        function loadFromLocalStorage() {
+            try {
+                const savedStations = localStorage.getItem('allStations');
+                const savedProfile = localStorage.getItem('userProfile');
+                const savedReports = localStorage.getItem('userReports');
+
+                if (savedStations) {
+                    allStations = JSON.parse(savedStations);
+                    console.log('Загружено АЗС из localStorage:', allStations.length);
+                }
+
+                if (savedProfile) {
+                    userProfile = JSON.parse(savedProfile);
+                    console.log('Загружен профиль из localStorage:', userProfile);
+                }
+
+                if (savedReports) {
+                    userReports = JSON.parse(savedReports);
+                }
+            } catch (e) {
+                console.error('Ошибка загрузки из localStorage:', e);
+            }
+        }
+
+        // Вызовите эту функцию в startApp()
+        async function startApp() {
+            // Сначала загружаем из localStorage
+            loadFromLocalStorage();
+
+            try {
+                await vkBridge.send('VKWebAppInit');
+                const data = await vkBridge.send('VKWebAppGetUserInfo');
+                if (data) {
+                    userData = data;
+                    document.getElementById('user-name').textContent = `${data.first_name} ${data.last_name}`;
+                    document.getElementById('user-id').textContent = `ID: ${data.id}`;
+                    document.getElementById('user-avatar').innerHTML = `${data.first_name[0]}${data.last_name[0]}<span class="user-level">${userProfile.level}</span>`;
+                }
+            } catch (e) {
+                document.getElementById('user-name').textContent = 'Гость';
+            }
+
+            updateUI();
+            await initMap();
+
+            // Если stations не загрузились с сервера, используем данные из localStorage
+            if (!allStations || allStations.length === 0) {
+                console.log('Используем данные из localStorage');
+            }
+
+            await loadStationsData();
         }
 
         function selectReportType(element, type) {
