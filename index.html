@@ -468,9 +468,8 @@
             Object.entries(station.fuels).forEach(([fuelType, fuel]) => {
                 const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
 
-                // Подсчитываем подтверждения за последние 24 часа
                 const recentReports = station.reports?.filter(r => {
-                    const reportTime = new Date(r.created_at).getTime();
+                    const reportTime = new Date(r.created_at.replace(' ', 'T') + 'Z').getTime();
                     return r.fuel_type === fuelType && (Date.now() - reportTime) < 24 * 60 * 60 * 1000;
                 }) || [];
 
@@ -478,24 +477,12 @@
                 const denials = recentReports.filter(r => r.status === 'unavailable').length;
                 const totalVotes = confirmations + denials;
 
-                // Определяем надёжность данных
-                let reliabilityText = '';
-                let reliabilityColor = '';
-                if (totalVotes === 0) {
-                    reliabilityText = 'Нет подтверждений';
-                    reliabilityColor = 'var(--text-secondary)';
-                } else if (totalVotes === 1) {
-                    reliabilityText = '1 подтверждение';
-                    reliabilityColor = 'var(--warning)';
-                } else if (totalVotes < 5) {
-                    reliabilityText = `${totalVotes} подтверждения`;
-                    reliabilityColor = 'var(--warning)';
-                } else {
-                    reliabilityText = `${totalVotes} подтверждений`;
-                    reliabilityColor = 'var(--success)';
-                }
+                let reliabilityText = '', reliabilityColor = '';
+                if (totalVotes === 0) { reliabilityText = 'Нет подтверждений'; reliabilityColor = 'var(--text-secondary)'; }
+                else if (totalVotes === 1) { reliabilityText = '1 подтверждение'; reliabilityColor = 'var(--warning)'; }
+                else if (totalVotes < 5) { reliabilityText = `${totalVotes} подтверждения`; reliabilityColor = 'var(--warning)'; }
+                else { reliabilityText = `${totalVotes} подтверждений`; reliabilityColor = 'var(--success)'; }
 
-                // Форматируем лимиты
                 let limitText = '';
                 const min = fuel.limit_min || 0;
                 const max = fuel.limit_max || 0;
@@ -512,31 +499,21 @@
                                 <span class="status-dot"></span>${fuel.available ? 'Есть' : 'Нет'}
                             </div>
                         </div>
-
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                             <div class="fuel-limits-text" style="font-size: 13px;">📏 ${limitText}</div>
                             <div class="fuel-price" style="font-size: 24px;">${fuel.price.toFixed(2)} ₽</div>
                         </div>
-
                         <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
                              Надёжность: <span style="color: ${reliabilityColor}; font-weight: 600;">${reliabilityText}</span>
                             ${confirmations > 0 ? `| ✅ ${confirmations} подтвердили` : ''}
                             ${denials > 0 ? `| ❌ ${denials} сообщили об отсутствии` : ''}
                         </div>
-
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <button class="btn btn-success" style="padding: 10px; font-size: 13px;" onclick="quickReport('${station.id}', '${fuelType}', true)">
-                                ✅ Подтвердить наличие
-                            </button>
-                            <button class="btn btn-danger" style="padding: 10px; font-size: 13px;" onclick="quickReport('${station.id}', '${fuelType}', false)">
-                                ❌ Сообщить об отсутствии
-                            </button>
+                            <button class="btn btn-success" style="padding: 10px; font-size: 13px;" onclick="quickReport('${station.id}', '${fuelType}', true)">✅ Подтвердить</button>
+                            <button class="btn btn-danger" style="padding: 10px; font-size: 13px;" onclick="quickReport('${station.id}', '${fuelType}', false)">❌ Сообщить об отсутствии</button>
                         </div>
-
                         <div style="margin-top: 8px; text-align: center;">
-                            <button class="btn" style="padding: 8px; font-size: 12px; background: var(--bg); color: var(--text-secondary);" onclick="openReportForm('${station.id}', '${fuelType}')">
-                                📝 Развёрнутый отчёт
-                            </button>
+                            <button class="btn" style="padding: 8px; font-size: 12px; background: var(--bg); color: var(--text-secondary);" onclick="openReportForm('${station.id}', '${fuelType}')">📝 Развёрнутый отчёт</button>
                         </div>
                     </div>`;
             });
@@ -545,9 +522,13 @@
             const stationReports = station.reports || [];
 
             if (stationReports.length > 0) {
-                // Сортируем от новых к старым и берём последние 10
+                // ИСПРАВЛЕНИЕ ДЛЯ SAFARI/IPHONE: принудительная замена формата даты
                 const sortedReports = [...stationReports]
-                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                    .sort((a, b) => {
+                        const dateA = new Date(a.created_at.replace(' ', 'T') + 'Z').getTime();
+                        const dateB = new Date(b.created_at.replace(' ', 'T') + 'Z').getTime();
+                        return dateB - dateA; // От новых к старым
+                    })
                     .slice(0, 10);
 
                 commentsHtml = '<div class="comments-section"><div class="comments-title">📋 Последние отчёты</div>';
@@ -567,7 +548,7 @@
                 });
                 commentsHtml += '</div>';
             } else {
-                commentsHtml = '<div class="comments-section"><div class="comments-title"> Последние отчёты</div><div class="loading" style="padding: 20px;">Пока нет отчётов. Будьте первым!</div></div>';
+                commentsHtml = '<div class="comments-section"><div class="comments-title">📋 Последние отчёты</div><div class="loading" style="padding: 20px;">Пока нет отчётов. Будьте первым!</div></div>';
             }
 
             let nearbyHtml = '';
@@ -726,7 +707,6 @@
             const fuel = station.fuels[fuelType];
             const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
 
-            // Показываем упрощённое подтверждение
             const confirmed = confirm(
                 `📝 ${isAvailable ? 'Подтвердить наличие' : 'Сообщить об отсутствии'} ${fuelNames[fuelType]}?\n\n` +
                 `💰 Последняя цена: ${fuel.price.toFixed(2)} ₽\n` +
@@ -735,22 +715,16 @@
             );
 
             if (confirmed) {
-                // Быстрая отправка с последними данными
                 try {
                     showToast('💾 Отправка...');
                     const response = await fetch(`${API_URL}?action=add_report`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            station_id: stationId,
-                            user_id: userData?.id || 'guest',
-                            fuel_type: fuelType,
-                            status: isAvailable ? 'available' : 'unavailable',
-                            price: fuel.price,  // Берём последнюю цену
-                            limit_min: fuel.limit_min || 0,
-                            limit_max: fuel.limit_max || 0,
-                            queue: 'no_queue',
-                            comment: `Быстрое подтверждение через приложение`
+                            station_id: stationId, user_id: userData?.id || 'guest', fuel_type: fuelType,
+                            status: isAvailable ? 'available' : 'unavailable', price: fuel.price,
+                            limit_min: fuel.limit_min || 0, limit_max: fuel.limit_max || 0,
+                            queue: 'no_queue', comment: `Быстрое подтверждение`
                         })
                     });
                     const result = await response.json();
@@ -767,7 +741,6 @@
                     showToast('❌ Ошибка', 'error');
                 }
             } else {
-                // Открываем полную форму
                 openReportForm(stationId, fuelType);
             }
         }
@@ -827,11 +800,12 @@
         }
 
         function timeAgo(timestamp) {
+            if (!timestamp) return 'только что';
             let date;
             if (typeof timestamp === 'string') {
-                // MySQL формат: "2024-01-15 12:00:00" → "2024-01-15T12:00:00"
-                const isoString = timestamp.replace(' ', 'T');
-                date = new Date(isoString + 'Z'); // Добавляем Z для UTC
+                // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ ДЛЯ SAFARI/IPHONE
+                const isoString = timestamp.replace(' ', 'T') + 'Z';
+                date = new Date(isoString);
             } else {
                 date = new Date(timestamp);
             }
@@ -841,15 +815,14 @@
             const now = new Date();
             const seconds = Math.floor((now - date) / 1000);
 
-            if (seconds < 0 || seconds < 60) return 'только что';
+            if (seconds < 60) return 'только что';
             const minutes = Math.floor(seconds / 60);
             if (minutes < 60) return `${minutes} мин назад`;
             const hours = Math.floor(minutes / 60);
             if (hours < 24) return `${hours} ч назад`;
             const days = Math.floor(hours / 24);
             if (days < 30) return `${days} дн назад`;
-            const months = Math.floor(days / 30);
-            return `${months} мес назад`;
+            return `${Math.floor(days / 30)} мес назад`;
         }
 
         function toggleFavorite(stationId) {
@@ -940,17 +913,16 @@
             
             const userLat = userCoords?.lat || 55.7558;
             const userLon = userCoords?.lon || 37.6173;
-
-            // Универсальная ссылка на Яндекс Карты (работает везде)
             const mapsUrl = `https://yandex.ru/maps/?rtext=${userLat},${userLon}~${lat},${lon}&rtt=auto`;
-
-            // Пытаемся открыть через VK Bridge
-            vkBridge.send('VKWebAppOpenLink', { link: mapsUrl })
-                .then(() => showToast('🗺️ Открываем маршрут...'))
-                .catch(() => {
-                    // Fallback: открываем в новом окне
-                    window.open(mapsUrl, '_blank');
-                });
+            
+            // ИСПРАВЛЕНИЕ ДЛЯ ТЕЛЕФОНОВ: создание временной ссылки надёжнее работает в WebView VK
+            const link = document.createElement('a');
+            link.href = mapsUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function switchTab(tabName) {
