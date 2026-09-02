@@ -287,6 +287,10 @@
                 <h1>⛽ Заправки Рядом</h1>
             </div>
             <div class="header-actions">
+                <button class="icon-btn" onclick="toggleFavoritesPanel()" title="Избранное">
+                    <span>❤️</span>
+                    <span id="fav-badge" style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; display: none;">0</span>
+                </button>
                 <button class="icon-btn" onclick="toggleTheme()" title="Тема"><span id="header-theme-icon">🌙</span></button>
             </div>
         </div>
@@ -332,7 +336,11 @@
             <button onclick="useMyLocation()" class="btn btn-primary" style="margin-bottom: 16px;">📍 Моё местоположение</button>
             <div id="stations-list-mobile"></div>
         </div>
-        <div id="tab-favorites" style="display: none;"></div>
+            <div id="tab-favorites" style="display: none;">
+                <div id="favorites-list" style="padding: 16px;">
+                    <div class="loading">Загрузка...</div>
+                </div>
+            </div>
         <div id="tab-achievements" style="display: none;"></div>
     </div>
 
@@ -978,6 +986,128 @@
             }
         }
 
+        // Открыть панель избранного
+        function toggleFavoritesPanel() {
+            const panel = document.getElementById('side-panel');
+            const overlay = document.getElementById('panel-overlay');
+
+            if (panel.classList.contains('show')) {
+                panel.classList.remove('show');
+                overlay.classList.remove('show');
+            } else {
+                loadFavoritesToPanel();
+                panel.classList.add('show');
+                overlay.classList.add('show');
+            }
+        }
+
+        // Загрузить избранное в боковую панель
+        function loadFavoritesToPanel() {
+            const panel = document.getElementById('side-panel');
+            const nameEl = document.getElementById('panel-station-name');
+            const addrEl = document.getElementById('panel-station-address');
+            const content = document.getElementById('panel-content');
+
+            nameEl.textContent = '❤️ Избранное';
+            const favCount = userProfile.favorites.length;
+            addrEl.textContent = `${favCount} ${getStationWord(favCount)}`;
+
+            if (favCount === 0) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 64px; margin-bottom: 16px;">💔</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Пока пусто</div>
+                        <div style="font-size: 14px; line-height: 1.5;">Добавляйте АЗС в избранное,<br>чтобы быстро находить их</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
+
+            content.innerHTML = favStations.map(station => {
+                const logo = getStationLogo(station.name);
+                return `
+                    <div class="station-item" onclick="openStationPanel('${station.id}')" style="margin-bottom: 12px;">
+                        <div class="station-item-logo" style="background: ${logo.color}">${logo.icon}</div>
+                        <div class="station-item-info">
+                            <div class="station-item-name">${station.name}</div>
+                            <div class="station-item-address">${station.address}</div>
+                            <div class="station-item-fuel" style="margin-top: 8px;">
+                                ${Object.entries(station.fuels).map(([type, fuel]) =>
+                                    `<span class="fuel-tag ${fuel.available ? 'available' : ''}">${type.toUpperCase()}: ${fuel.price.toFixed(0)}₽</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        <button class="btn btn-danger" onclick="event.stopPropagation(); removeFromFavorites('${station.id}')" style="padding: 8px 12px; font-size: 12px; width: auto; flex-shrink: 0;">Убрать</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Удалить из избранного
+        function removeFromFavorites(stationId) {
+            const idx = userProfile.favorites.indexOf(stationId);
+            if (idx > -1) {
+                userProfile.favorites.splice(idx, 1);
+                storage.set('userProfile', userProfile);
+                updateUI();
+                loadFavoritesToPanel();
+                showToast('❌ Удалено из избранного');
+            }
+        }
+
+        // Склонение слов
+        function getStationWord(count) {
+            if (count === 1) return 'АЗС';
+            if (count >= 2 && count <= 4) return 'АЗС';
+            return 'АЗС';
+        }
+
+        // Переключение вкладок
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.closest('.tab').classList.add('active');
+
+            ['search', 'favorites', 'achievements'].forEach(t => {
+                document.getElementById(`tab-${t}`).style.display = t === tabName ? 'block' : 'none';
+            });
+
+            if (tabName === 'favorites') {
+                loadFavoritesList();
+            }
+        }
+
+        // Загрузить список избранного во вкладку
+        function loadFavoritesList() {
+            const container = document.getElementById('favorites-list');
+            const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
+
+            if (favStations.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 64px; margin-bottom: 16px;">💔</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Пока пусто</div>
+                        <div style="font-size: 14px; line-height: 1.5;">Добавляйте АЗС в избранное,<br>чтобы быстро находить их</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = favStations.map(station => {
+                const logo = getStationLogo(station.name);
+                return `
+                    <div class="station-item" onclick="openStationPanel('${station.id}')" style="margin-bottom: 12px;">
+                        <div class="station-item-logo" style="background: ${logo.color}">${logo.icon}</div>
+                        <div class="station-item-info">
+                            <div class="station-item-name">${station.name}</div>
+                            <div class="station-item-address">${station.address}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         // Показ уведомления об добавлении в избранное
         function showFavoriteNotification(stationName, isAdding) {
             const notif = document.getElementById('favorite-notification');
@@ -1065,6 +1195,29 @@
             if (newLevel > userProfile.level) { userProfile.level = newLevel; showToast(`🎉 Уровень ${newLevel}!`); }
             storage.set('userProfile', userProfile);
             updateUI();
+        }
+
+        function addToFavorites(stationId) {
+            if (!userProfile.favorites.includes(stationId)) {
+                userProfile.favorites.push(stationId);
+                storage.set('userProfile', userProfile);
+                updateUI();
+                showToast('❤️ Добавлено в избранное', 'success');
+
+                // Обновить бейджи
+                const badge = document.getElementById('fav-badge');
+                const tabBadge = document.getElementById('tab-fav-count');
+                const count = userProfile.favorites.length;
+
+                if (badge) {
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'inline-block' : 'none';
+                }
+                if (tabBadge) {
+                    tabBadge.textContent = count;
+                    tabBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                }
+            }
         }
 
         function unlockAchievement(id) {
