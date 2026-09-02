@@ -27,7 +27,6 @@
             overflow-x: hidden; -webkit-font-smoothing: antialiased;
         }
 
-        /* Header */
         .header { background: var(--card-bg); padding: 15px 20px; box-shadow: 0 2px 10px var(--shadow); position: sticky; top: 0; z-index: 100; }
         .header-content { display: flex; justify-content: space-between; align-items: center; }
         .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
@@ -35,7 +34,6 @@
         .icon-btn { width: 40px; height: 40px; border: none; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: var(--transition); }
         .icon-btn:active { transform: scale(0.9); background: var(--border); }
 
-        /* User Bar */
         .user-bar { background: var(--card-bg); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
         .user-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
         .user-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; position: relative; flex-shrink: 0; }
@@ -46,170 +44,51 @@
         .points-value { font-size: 18px; font-weight: 700; color: var(--warning); }
         .points-label { font-size: 11px; color: var(--text-secondary); }
 
-        /* Stats Bar */
         .stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; background: var(--card-bg); margin-bottom: 1px; }
         .stat-item { text-align: center; padding: 12px; background: var(--bg); border-radius: 12px; }
         .stat-value { font-size: 24px; font-weight: 700; color: var(--primary); }
         .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
 
-        /* Map */
         .map-container { height: 50vh; min-height: 350px; position: relative; background: #e5e5e5; }
         #map { width: 100%; height: 100%; transition: filter 0.3s; }
 
-        /* Map Controls */
-        .map-controls {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 50;
-        }
-        .map-control-btn {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            border: none;
-            background: var(--card-bg);
-            box-shadow: 0 4px 12px var(--shadow);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            transition: var(--transition);
-        }
+        .map-controls { position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 50; }
+        .map-control-btn { width: 52px; height: 52px; border-radius: 50%; border: none; background: var(--card-bg); box-shadow: 0 4px 12px var(--shadow); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: var(--transition); }
         .map-control-btn:active { transform: scale(0.9); }
 
-        /* Side Panel */
-        .side-panel {
-            position: fixed;
-            top: 0;
-            right: -100%;
-            width: 100%;
-            max-width: 450px;
-            height: 100vh;
-            background: var(--card-bg);
-            box-shadow: -4px 0 20px var(--shadow);
-            z-index: 1000;
-            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        .side-panel { position: fixed; top: 0; right: -100%; width: 100%; max-width: 450px; height: 100vh; background: var(--card-bg); box-shadow: -4px 0 20px var(--shadow); z-index: 1000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; overflow: hidden; }
         .side-panel.show { right: 0; }
+        @media (max-width: 767px) { .side-panel { max-width: 100%; } .map-container { height: 40vh; min-height: 300px; } .map-controls { bottom: 12px; right: 12px; } .map-control-btn { width: 46px; height: 46px; font-size: 20px; } }
 
-        @media (max-width: 767px) {
-            .side-panel { max-width: 100%; }
-            .map-container { height: 40vh; min-height: 300px; }
-            .map-controls { bottom: 12px; right: 12px; }
-            .map-control-btn { width: 46px; height: 46px; font-size: 20px; }
-        }
-
-        .side-panel-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
+        .side-panel-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .side-panel-overlay.show { opacity: 1; visibility: visible; }
 
-        .panel-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            background: var(--gradient);
-            color: white;
-            position: relative;
-        }
+        .panel-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: flex-start; background: var(--gradient); color: white; position: relative; }
         .panel-header-top { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
         .panel-header-content { flex: 1; }
         .panel-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
         .panel-address { font-size: 14px; opacity: 0.9; line-height: 1.4; }
-        .panel-close {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-            flex-shrink: 0;
-        }
+        .panel-close { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); border: none; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); flex-shrink: 0; }
         .panel-close:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.3); }
-
-        .panel-header .btn-navi {
-            margin-top: 16px;
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: var(--transition);
-        }
+        .panel-header .btn-navi { margin-top: 16px; width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition); }
         .panel-header .btn-navi:active { transform: scale(0.98); background: var(--primary-dark); }
-
         .panel-content { flex: 1; overflow-y: auto; padding: 20px; }
 
-        /* Fuel Cards */
-        .fuel-card {
-            background: var(--bg);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 2px solid var(--border);
-            transition: var(--transition);
-            cursor: pointer;
-        }
+        .fuel-card { background: var(--bg); border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 2px solid var(--border); transition: var(--transition); cursor: pointer; }
         .fuel-card:active { transform: scale(0.98); background: var(--card-bg); }
         .fuel-card.available { border-color: var(--success); }
         .fuel-card.unavailable { border-color: var(--danger); opacity: 0.7; }
-
         .fuel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .fuel-type { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .fuel-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
+        .fuel-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
         .fuel-status.available { background: rgba(52, 199, 89, 0.15); color: var(--success); }
         .fuel-status.unavailable { background: rgba(255, 59, 48, 0.15); color: var(--danger); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-
         .fuel-price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .fuel-price { font-size: 28px; font-weight: 700; color: var(--text); }
-        .fuel-price-label { font-size: 14px; color: var(--text-secondary); }
-
-        .fuel-limits { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+        .fuel-limits-text { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
         .fuel-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
 
-        /* Report Form */
         .report-form { background: var(--bg); border-radius: 16px; padding: 16px; margin-top: 20px; }
         .form-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
         .form-group { margin-bottom: 16px; }
@@ -218,20 +97,17 @@
         .form-input:focus { border-color: var(--primary); }
         .form-textarea { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; outline: none; background: var(--card-bg); color: var(--text); transition: var(--transition); resize: vertical; min-height: 80px; font-family: inherit; }
         .form-textarea:focus { border-color: var(--primary); }
-
         .radio-group { display: flex; gap: 12px; }
         .radio-option { flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: var(--transition); background: var(--card-bg); font-weight: 600; }
         .radio-option:active { transform: scale(0.95); }
         .radio-option.selected { border-color: var(--success); background: var(--success); color: white; }
         .radio-option.selected.no { border-color: var(--danger); background: var(--danger); }
-
         .btn { padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition); width: 100%; }
         .btn:active { transform: scale(0.98); }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-primary { background: var(--primary); color: white; }
 
-        /* Comments Section */
         .comments-section { margin-top: 20px; }
         .comments-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
         .comment-item { background: var(--bg); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
@@ -241,7 +117,6 @@
         .comment-text { font-size: 14px; color: var(--text); line-height: 1.4; }
         .comment-queue { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
 
-        /* Info Block */
         .info-block { margin-top: 20px; background: var(--bg); border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
         .info-header { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
         .info-content { display: none; margin-top: 12px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
@@ -249,7 +124,6 @@
         .info-arrow { margin-left: auto; transition: transform 0.3s; }
         .info-arrow.show { transform: rotate(180deg); }
 
-        /* Confirm Block */
         .confirm-block { margin-top: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; color: white; }
         .confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
         .confirm-text { font-size: 14px; opacity: 0.9; margin-bottom: 16px; line-height: 1.4; }
@@ -259,7 +133,6 @@
         .confirm-btn-yes { background: white; color: var(--primary); }
         .confirm-btn-no { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; }
 
-        /* Nearby Stations */
         .nearby-section { margin-top: 20px; }
         .nearby-station-item { display: flex; align-items: center; padding: 12px; background: var(--bg); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: var(--transition); }
         .nearby-station-item:active { transform: scale(0.98); background: var(--border); }
@@ -269,35 +142,17 @@
         .nearby-station-address { font-size: 12px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .nearby-station-distance { font-size: 14px; color: var(--text-secondary); margin-left: 12px; flex-shrink: 0; }
 
-        /* Action Buttons */
         .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .btn-large { padding: 16px; font-size: 16px; }
 
-        /* Bottom Sheet for Mobile */
-        .bottom-sheet {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--card-bg);
-            border-radius: 20px 20px 0 0;
-            padding: 20px;
-            box-shadow: 0 -4px 20px var(--shadow);
-            z-index: 100;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            max-height: 60vh;
-            overflow-y: auto;
-        }
+        .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-radius: 20px 20px 0 0; padding: 20px; box-shadow: 0 -4px 20px var(--shadow); z-index: 100; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); max-height: 60vh; overflow-y: auto; }
         .bottom-sheet.show { transform: translateY(0); }
         .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
 
-        /* Tabs */
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
         .tab { padding: 10px 16px; background: var(--bg); border: none; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: var(--transition); }
         .tab.active { background: var(--primary); color: white; }
 
-        /* Station List */
         .station-item { background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px var(--shadow); cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 12px; }
         .station-item:active { transform: scale(0.98); }
         .station-item-logo { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; flex-shrink: 0; font-size: 18px; }
@@ -310,17 +165,12 @@
         .fuel-tag.available { background: rgba(52, 199, 89, 0.15); color: var(--success); }
         .favorite-icon { color: var(--danger); font-size: 16px; }
 
-        /* Toast */
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--card-bg); padding: 14px 24px; border-radius: 12px; font-size: 14px; font-weight: 500; z-index: 2000; opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); text-align: center; max-width: 90%; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.success { background: var(--success); color: white; }
         .toast.error { background: var(--danger); color: white; }
 
-        @media (min-width: 768px) {
-            .bottom-sheet { display: none; }
-            .side-panel { max-width: 450px; }
-        }
-
+        @media (min-width: 768px) { .bottom-sheet { display: none; } .side-panel { max-width: 450px; } }
         .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
         .achievement { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: linear-gradient(135deg, #FFD700, #FFA500); color: white; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 4px; animation: popIn 0.3s ease-out; }
         @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -334,9 +184,7 @@
                 <h1>⛽ Заправки Рядом</h1>
             </div>
             <div class="header-actions">
-                <button class="icon-btn" onclick="toggleTheme()" title="Тема">
-                    <span id="header-theme-icon">🌙</span>
-                </button>
+                <button class="icon-btn" onclick="toggleTheme()" title="Тема"><span id="header-theme-icon">🌙</span></button>
             </div>
         </div>
     </div>
@@ -366,9 +214,7 @@
     <div class="map-container">
         <div id="map"></div>
         <div class="map-controls">
-            <button class="map-control-btn" onclick="useMyLocation()" title="Моё местоположение">
-                <span>📍</span>
-            </button>
+            <button class="map-control-btn" onclick="useMyLocation()" title="Моё местоположение"><span>📍</span></button>
         </div>
     </div>
 
@@ -387,7 +233,6 @@
         <div id="tab-achievements" style="display: none;"></div>
     </div>
 
-    <!-- Side Panel -->
     <div class="side-panel-overlay" id="panel-overlay" onclick="closeSidePanel()"></div>
     <div class="side-panel" id="side-panel">
         <div class="panel-header">
@@ -403,7 +248,6 @@
         <div class="panel-content" id="panel-content"></div>
     </div>
 
-    <!-- Add Station Modal -->
     <div class="side-panel-overlay" id="add-station-overlay" onclick="closeAddStationModal()"></div>
     <div class="side-panel" id="add-station-panel">
         <div class="panel-header">
@@ -445,6 +289,19 @@
                     </label>
                 </div>
             </div>
+            <div class="form-group" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                <label class="form-label">Лимиты по умолчанию (литры)</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="font-size: 12px; color: var(--text-secondary);">Минимум (0 = нет)</label>
+                        <input type="number" id="new-limit-min" class="form-input" value="0" min="0" max="1000">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: var(--text-secondary);">Максимум (0 = нет)</label>
+                        <input type="number" id="new-limit-max" class="form-input" value="0" min="0" max="1000">
+                    </div>
+                </div>
+            </div>
             <button class="btn btn-success" onclick="submitNewStation()">✅ Добавить АЗС (+20 баллов)</button>
         </div>
     </div>
@@ -452,46 +309,25 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // ================= 1. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =================
         const API_URL = 'https://it-reutov.start-ovh.ru/api/index.php';
         let myMap, userData = null, userCoords = null, stations = [], selectedStation = null;
 
         const STATION_LOGOS = {
-            'Лукойл': { color: '#E31E24', icon: 'ЛУК' },
-            'Газпромнефть': { color: '#00A651', icon: 'ГПН' },
-            'Роснефть': { color: '#0055A5', icon: 'РН' },
-            'Татнефть': { color: '#00A651', icon: 'ТН' },
-            'Shell': { color: '#FFD500', icon: '🐚' },
-            'BP': { color: '#00B04F', icon: 'BP' },
-            'Трасса': { color: '#FF6B00', icon: 'ТР' }
+            'Лукойл': { color: '#E31E24', icon: 'ЛУК' }, 'Газпромнефть': { color: '#00A651', icon: 'ГПН' },
+            'Роснефть': { color: '#0055A5', icon: 'РН' }, 'Татнефть': { color: '#00A651', icon: 'ТН' },
+            'Shell': { color: '#FFD500', icon: '🐚' }, 'BP': { color: '#00B04F', icon: 'BP' }, 'Трасса': { color: '#FF6B00', icon: 'ТР' }
         };
 
-        // ================= 2. ДЕМО-ДАННЫЕ (Запасной вариант) =================
         const DEMO_STATIONS = [
-            { id: '1', name: 'Лукойл', address: 'МКАД 2 км, вл5', lat: 55.752, lon: 37.574, fuels: { ai92: { price: 63.99, available: true }, ai95: { price: 69.69, available: true } }, reports: [], rating: 4.8 },
-            { id: '2', name: 'Газпромнефть', address: 'ул. Победы, 29, Реутов', lat: 55.759, lon: 37.860, fuels: { ai92: { price: 64.50, available: true }, ai95: { price: 70.20, available: false } }, reports: [], rating: 4.5 }
+            { id: '1', name: 'Лукойл', address: 'МКАД 2 км, вл5', lat: 55.752, lon: 37.574, fuels: { ai92: { price: 63.99, available: true, limit_min: 0, limit_max: 0 } }, reports: [], rating: 4.8 },
+            { id: '2', name: 'Газпромнефть', address: 'ул. Победы, 29, Реутов', lat: 55.759, lon: 37.860, fuels: { ai95: { price: 70.20, available: false, limit_min: 30, limit_max: 50 } }, reports: [], rating: 4.5 }
         ];
 
-        // ================= 3. ХРАНИЛИЩЕ (LocalStorage) =================
         const storage = {
-            get: (key, defaultValue) => {
-                try {
-                    const item = localStorage.getItem(key);
-                    return item ? JSON.parse(item) : defaultValue;
-                } catch {
-                    return defaultValue;
-                }
-            },
-            set: (key, value) => {
-                try {
-                    localStorage.setItem(key, JSON.stringify(value));
-                } catch (e) {
-                    console.error('Storage error:', e);
-                }
-            }
+            get: (key, defaultValue) => { try { const item = localStorage.getItem(key); return item ? JSON.parse(item) : defaultValue; } catch { return defaultValue; } },
+            set: (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error('Storage error:', e); } }
         };
 
-        // ================= 4. ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ =================
         let userProfile = storage.get('userProfile', { points: 0, level: 1, achievements: [], reports: 0, favorites: [] });
         let allStations = [];
         let userReports = storage.get('userReports', []);
@@ -501,14 +337,13 @@
             document.getElementById('header-theme-icon').textContent = '☀️';
         }
 
-        // ================= 5. ФУНКЦИИ =================
         function toggleTheme() {
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             storage.set('theme', isDark ? 'dark' : 'light');
             document.getElementById('header-theme-icon').textContent = isDark ? '☀️' : '🌙';
             if (myMap) myMap.setType(isDark ? 'yandex#dark' : 'yandex#map');
-            showToast(isDark ? '🌙 Тёмная тема включена' : '☀️ Светлая тема включена');
+            showToast(isDark ? '🌙 Тёмная тема' : '☀️ Светлая тема');
         }
 
         function updateUI() {
@@ -523,13 +358,12 @@
         function updateStats() {
             const totalStations = allStations.length;
             const availableStations = allStations.filter(s => Object.values(s.fuels).some(f => f.available)).length;
-            const totalReports = userReports.length;
             const statTotal = document.getElementById('stat-total');
             const statAvailable = document.getElementById('stat-available');
             const statReports = document.getElementById('stat-reports');
             if (statTotal) statTotal.textContent = totalStations;
             if (statAvailable) statAvailable.textContent = availableStations;
-            if (statReports) statReports.textContent = totalReports;
+            if (statReports) statReports.textContent = userProfile.reports;
         }
 
         function renderAchievements() {
@@ -541,61 +375,38 @@
 
         function initMap() {
             return new Promise((resolve) => {
-                if (typeof ymaps === 'undefined') {
-                    console.error('❌ Яндекс Карты API не загружен');
-                    resolve();
-                    return;
-                }
+                if (typeof ymaps === 'undefined') { resolve(); return; }
                 try {
                     ymaps.ready(function () {
                         if (!myMap) {
                             const isDark = document.body.classList.contains('dark-theme');
-                            myMap = new ymaps.Map("map", {
-                                center: [55.751244, 37.618423],
-                                zoom: 10,
-                                controls: ['zoomControl', 'geolocationControl'],
-                                type: isDark ? 'yandex#dark' : 'yandex#map'
-                            });
-                            console.log('✅ Карта успешно инициализирована');
+                            myMap = new ymaps.Map("map", { center: [55.751244, 37.618423], zoom: 10, controls: ['zoomControl', 'geolocationControl'], type: isDark ? 'yandex#dark' : 'yandex#map' });
                         }
                         resolve();
                     });
-                } catch (err) {
-                    console.error('Ошибка инициализации:', err);
-                    resolve();
-                }
+                } catch (err) { resolve(); }
             });
         }
 
         async function loadStationsData() {
             try {
-                console.log("🔄 Загрузка данных с сервера OVH...");
                 const response = await fetch(`${API_URL}?action=get_stations`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
                 const data = await response.json();
                 if (data.error) {
-                    console.error("Ошибка от сервера:", data.error);
-                    showToast("⚠️ Ошибка сервера: " + data.error, "error");
+                    showToast("⚠️ Ошибка сервера", "error");
                     allStations = DEMO_STATIONS;
                 } else {
                     allStations = data.stations || [];
-                    console.log(`✅ Загружено ${allStations.length} АЗС с сервера`);
                 }
             } catch (error) {
-                console.error("❌ Ошибка загрузки:", error);
-                showToast("⚠️ Не удалось загрузить данные, используем демо", "error");
                 allStations = DEMO_STATIONS;
             }
-
             updateStats();
             renderAchievements();
             updateUI();
             loadStationsOnMap();
-
-            if (userCoords) {
-                searchStationsByCoords(userCoords.lat, userCoords.lon);
-            }
+            if (userCoords) searchStationsByCoords(userCoords.lat, userCoords.lon);
         }
 
         function getStationLogo(stationName) {
@@ -608,26 +419,17 @@
         function createCustomPlacemark(station) {
             const logo = getStationLogo(station.name);
             const hasFuel = Object.values(station.fuels).some(f => f.available);
-
-            const svgContent = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-                    <circle cx="24" cy="24" r="22" fill="${logo.color}" stroke="white" stroke-width="2"/>
-                    <text x="24" y="28" text-anchor="middle" fill="white" font-size="${logo.icon.length > 2 ? '10' : '14'}" font-weight="bold" font-family="Arial">${logo.icon}</text>
-                    ${hasFuel ? '<circle cx="36" cy="12" r="6" fill="#34C759" stroke="white" stroke-width="1.5"/>' : '<circle cx="36" cy="12" r="6" fill="#FF3B30" stroke="white" stroke-width="1.5"/>'}
-                </svg>
-            `;
+            const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+                <circle cx="24" cy="24" r="22" fill="${logo.color}" stroke="white" stroke-width="2"/>
+                <text x="24" y="28" text-anchor="middle" fill="white" font-size="${logo.icon.length > 2 ? '10' : '14'}" font-weight="bold" font-family="Arial">${logo.icon}</text>
+                ${hasFuel ? '<circle cx="36" cy="12" r="6" fill="#34C759" stroke="white" stroke-width="1.5"/>' : '<circle cx="36" cy="12" r="6" fill="#FF3B30" stroke="white" stroke-width="1.5"/>'}
+            </svg>`;
             const blob = new Blob([svgContent], { type: 'image/svg+xml' });
             const url = URL.createObjectURL(blob);
-
             return new ymaps.Placemark([station.lat, station.lon], {
                 hintContent: `${station.name} - ${station.address}`,
                 balloonContent: `<b>${station.name}</b><br>${station.address}<br>⭐ ${station.rating}`
-            }, {
-                preset: 'default#circle',
-                iconImageHref: url,
-                iconImageSize: [48, 48],
-                iconImageOffset: [-24, -24]
-            });
+            }, { preset: 'default#circle', iconImageHref: url, iconImageSize: [48, 48], iconImageOffset: [-24, -24] });
         }
 
         function loadStationsOnMap() {
@@ -665,21 +467,25 @@
             let fuelsHtml = '';
             Object.entries(station.fuels).forEach(([fuelType, fuel]) => {
                 const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
+                
+                // Красивое форматирование лимитов
+                let limitText = 'Лимиты не указаны';
+                const min = fuel.limit_min || 0;
+                const max = fuel.limit_max || 0;
+                if (min > 0 && max > 0) limitText = `Лимит: ${min} – ${max} л`;
+                else if (min > 0) limitText = `Мин. лимит: ${min} л`;
+                else if (max > 0) limitText = `Макс. лимит: ${max} л`;
+
                 fuelsHtml += `
                     <div class="fuel-card ${fuel.available ? 'available' : 'unavailable'}" onclick="openReportForm('${station.id}', '${fuelType}')">
                         <div class="fuel-header">
                             <div class="fuel-type">${fuelNames[fuelType]}</div>
                             <div class="fuel-status ${fuel.available ? 'available' : 'unavailable'}">
-                                <span class="status-dot"></span>${fuel.available ? 'Высокая' : 'Недоступна'}
+                                <span class="status-dot"></span>${fuel.available ? 'Есть' : 'Нет'}
                             </div>
                         </div>
-                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Статус обновлён: ${timeAgo(fuel.updated || Date.now())}</div>
                         <div class="fuel-price-row">
-                            <div>
-                                ${fuel.limit_min > 0 ? `<div style="font-size: 13px; color: var(--text-secondary);">Мин. лимит: ${fuel.limit_min} л</div>` : ''}
-                                ${fuel.limit_max > 0 ? `<div style="font-size: 13px; color: var(--text-secondary);">Макс. лимит: ${fuel.limit_max} л ⓘ</div>` : ''}
-                                ${fuel.limit_min === 0 && fuel.limit_max === 0 ? '<div style="font-size: 13px; color: var(--text-secondary);">Лимиты не указаны</div>' : ''}
-                            </div>
+                            <div class="fuel-limits-text">${limitText}</div>
                             <div class="fuel-price">${fuel.price.toFixed(2)} ₽</div>
                         </div>
                         <div class="fuel-meta"><span>Отчётов: ${station.reports?.filter(r => r.fuel_type === fuelType).length || 0}</span></div>
@@ -691,13 +497,12 @@
             if (stationReports.length > 0) {
                 commentsHtml = '<div class="comments-section"><div class="comments-title">📋 Последние отчёты</div>';
                 stationReports.slice(-5).reverse().forEach(report => {
-                    commentsHtml += `
-                        <div class="comment-item">
-                            <div class="comment-header"><span class="comment-user">${report.fuel_type.toUpperCase()}</span><span class="comment-time">${timeAgo(new Date(report.created_at).getTime())}</span></div>
-                            <div class="comment-text">${report.status === 'available' ? '✅ Есть топливо' : '❌ Нет топлива'}<br>💰 Цена: ${parseFloat(report.price).toFixed(2)} ₽</div>
-                            ${report.queue ? `<div class="comment-queue">🚗 Очередь: ${getQueueText(report.queue)}</div>` : ''}
-                            ${report.comment ? `<div class="comment-text" style="margin-top: 8px; font-style: italic;">"${report.comment}"</div>` : ''}
-                        </div>`;
+                    commentsHtml += `<div class="comment-item">
+                        <div class="comment-header"><span class="comment-user">${report.fuel_type.toUpperCase()}</span><span class="comment-time">${timeAgo(new Date(report.created_at).getTime())}</span></div>
+                        <div class="comment-text">${report.status === 'available' ? '✅ Есть' : '❌ Нет'} | 💰 ${parseFloat(report.price).toFixed(2)} ₽</div>
+                        ${report.queue ? `<div class="comment-queue">🚗 ${getQueueText(report.queue)}</div>` : ''}
+                        ${report.comment ? `<div class="comment-text" style="margin-top: 8px; font-style: italic;">"${report.comment}"</div>` : ''}
+                    </div>`;
                 });
                 commentsHtml += '</div>';
             } else {
@@ -718,37 +523,35 @@
             }
 
             const isFavorite = userProfile.favorites.includes(station.id);
-            content.innerHTML = `
-                ${fuelsHtml}${commentsHtml}${nearbyHtml}
+            content.innerHTML = `${fuelsHtml}${commentsHtml}${nearbyHtml}
                 <div class="info-block">
-                    <div class="info-header" onclick="toggleInfoBlock()"><span>ℹ️</span><span>Информация носит справочный характер.</span><span class="info-arrow" id="info-arrow">▼</span></div>
+                    <div class="info-header" onclick="toggleInfoBlock()"><span>ℹ️</span><span>Информация справочная</span><span class="info-arrow" id="info-arrow">▼</span></div>
                     <div class="info-content" id="info-content">
-                        <p style="margin-bottom: 12px;">Доступность АЗС определяется на основе анализа транзакций и агрегированных данных.</p>
-                        <p><strong>Высокая</strong> – транзакции в штатном режиме. <strong>Не подтверждена</strong> – ниже обычного. <strong>Недоступна</strong> – транзакции отсутствуют.</p>
+                        <p>Доступность определяется на основе отчётов пользователей.</p>
                     </div>
                 </div>
                 <div class="confirm-block">
                     <div class="confirm-title">Подтвердите данные</div>
-                    <div class="confirm-text">Помогите нам поддерживать информацию актуальной.</div>
+                    <div class="confirm-text">Помогите поддерживать информацию актуальной.</div>
                     <div class="confirm-buttons">
                         <button class="confirm-btn confirm-btn-yes" onclick="confirmData('${station.id}', true)">Да</button>
                         <button class="confirm-btn confirm-btn-no" onclick="confirmData('${station.id}', false)">Нет</button>
                     </div>
                 </div>
                 <div class="action-buttons">
-                    <button class="btn btn-danger btn-large" onclick="toggleFavorite('${station.id}')">${isFavorite ? '💔 Убрать из избранного' : '❤️ В избранное'}</button>
+                    <button class="btn btn-danger btn-large" onclick="toggleFavorite('${station.id}')">${isFavorite ? '💔 Убрать' : '❤️ В избранное'}</button>
                 </div>`;
         }
 
         function toggleInfoBlock() {
             const content = document.getElementById('info-content');
             const arrow = document.getElementById('info-arrow');
-            if (content.classList.contains('show')) { content.classList.remove('show'); arrow.classList.remove('show'); }
-            else { content.classList.add('show'); arrow.classList.add('show'); }
+            content.classList.toggle('show');
+            arrow.classList.toggle('show');
         }
 
         function confirmData(stationId, confirmed) {
-            showToast(confirmed ? '✅ Спасибо за подтверждение! +5 баллов' : '❌ Данные не подтверждены', 'success');
+            showToast(confirmed ? '✅ Спасибо! +5 баллов' : '❌ Не подтверждено', 'success');
             addPoints(5);
         }
 
@@ -762,13 +565,12 @@
             if (!station) return;
             const fuel = station.fuels[fuelType];
             const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
-
-            const limitMin = fuel.limit_min || 30;
-            const limitMax = fuel.limit_max || 50;
+            const limitMin = fuel.limit_min || 0;
+            const limitMax = fuel.limit_max || 0;
 
             document.getElementById('panel-content').innerHTML = `
                 <div class="report-form">
-                    <div class="form-title"> Отчёт: ${fuelNames[fuelType]}</div>
+                    <div class="form-title">📝 Отчёт: ${fuelNames[fuelType]}</div>
                     <div class="form-group">
                         <label class="form-label">Статус топлива</label>
                         <div class="radio-group">
@@ -785,24 +587,20 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div>
                                 <label style="font-size: 12px; color: var(--text-secondary);">Минимум</label>
-                                <input type="number" id="report-limit-min" class="form-input" value="${limitMin}" min="0" max="1000">
+                                <input type="number" id="report-limit-min" class="form-input" value="${limitMin}" min="0" max="1000" placeholder="0">
                             </div>
                             <div>
                                 <label style="font-size: 12px; color: var(--text-secondary);">Максимум</label>
-                                <input type="number" id="report-limit-max" class="form-input" value="${limitMax}" min="0" max="1000">
+                                <input type="number" id="report-limit-max" class="form-input" value="${limitMax}" min="0" max="1000" placeholder="0">
                             </div>
                         </div>
-                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">
-                            💡 Оставьте пустым или 0, чтобы не указывать лимит
-                        </div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">💡 Введите 0 или оставьте пустым, если лимита нет</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Очередь</label>
                         <select id="report-queue" class="form-input">
-                            <option value="no_queue">Нет очереди</option>
-                            <option value="small">Маленькая (1-3 машины)</option>
-                            <option value="medium">Средняя (4-7 машин)</option>
-                            <option value="large">Большая (8+ машин)</option>
+                            <option value="no_queue">Нет очереди</option><option value="small">Маленькая (1-3)</option>
+                            <option value="medium">Средняя (4-7)</option><option value="large">Большая (8+)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -826,35 +624,23 @@
             const queue = document.getElementById('report-queue').value;
             const comment = document.getElementById('report-comment').value.trim();
             const isAvailable = document.querySelector('.radio-option.selected')?.textContent.includes('Есть');
-
-            // Получаем лимиты (0 = не указано)
             const limitMin = parseInt(document.getElementById('report-limit-min').value) || 0;
             const limitMax = parseInt(document.getElementById('report-limit-max').value) || 0;
 
             if (isNaN(price) || price <= 0) { showToast('❌ Введите корректную цену', 'error'); return; }
-            if (limitMin > 0 && limitMax > 0 && limitMin > limitMax) {
-                showToast(' Минимальный лимит не может быть больше максимального', 'error');
-                return;
-            }
+            if (limitMin > 0 && limitMax > 0 && limitMin > limitMax) { showToast('❌ Мин. лимит > макс.', 'error'); return; }
 
             try {
-                showToast('💾 Отправка отчёта...');
+                showToast('💾 Отправка...');
                 const response = await fetch(`${API_URL}?action=add_report`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        station_id: stationId,
-                        user_id: userData?.id || 'guest',
-                        fuel_type: fuelType,
-                        status: isAvailable ? 'available' : 'unavailable',
-                        price: price,
-                        limit_min: limitMin,
-                        limit_max: limitMax,
-                        queue: queue,
-                        comment: comment
+                        station_id: stationId, user_id: userData?.id || 'guest', fuel_type: fuelType,
+                        status: isAvailable ? 'available' : 'unavailable', price: price,
+                        limit_min: limitMin, limit_max: limitMax, queue: queue, comment: comment
                     })
                 });
-
                 const result = await response.json();
                 if (result.success) {
                     showToast('✅ Отчёт отправлен! +10 баллов', 'success');
@@ -865,10 +651,9 @@
                     storage.set('userProfile', userProfile);
                     await loadStationsData();
                 } else {
-                    showToast('❌ Ошибка отчёта', 'error');
+                    showToast('❌ Ошибка: ' + (result.error || ''), 'error');
                 }
             } catch (e) {
-                console.error(e);
                 showToast('❌ Ошибка сети', 'error');
             }
         }
@@ -879,17 +664,14 @@
             try {
                 const data = await vkBridge.send('VKWebAppGetLocation');
                 if (data && data.lat) { userCoords = { lat: data.lat, lon: data.lon }; await searchStationsByCoords(data.lat, data.lon); gotLocation = true; }
-            } catch (e) { console.error('Ошибка VK геолокации:', e); }
-
+            } catch (e) { console.error('VK geo error:', e); }
             if (!gotLocation && navigator.geolocation) {
                 try {
-                    const position = await new Promise((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-                    });
+                    const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 }));
                     userCoords = { lat: position.coords.latitude, lon: position.coords.longitude };
                     await searchStationsByCoords(userCoords.lat, userCoords.lon);
                     gotLocation = true;
-                } catch (error) { console.error('Ошибка браузерной геолокации:', error); }
+                } catch (error) { console.error('Browser geo error:', error); }
             }
             if (!gotLocation) {
                 userCoords = { lat: 55.7558, lon: 37.6173 };
@@ -942,8 +724,8 @@
 
         function toggleFavorite(stationId) {
             const idx = userProfile.favorites.indexOf(stationId);
-            if (idx > -1) { userProfile.favorites.splice(idx, 1); showToast('💔 Удалено из избранного'); }
-            else { userProfile.favorites.push(stationId); showToast('❤️ Добавлено в избранное'); addPoints(5); }
+            if (idx > -1) { userProfile.favorites.splice(idx, 1); showToast('💔 Удалено'); }
+            else { userProfile.favorites.push(stationId); showToast('❤️ Добавлено'); addPoints(5); }
             storage.set('userProfile', userProfile);
             updateUI();
             if (selectedStation && selectedStation.id == stationId) renderPanelContent(selectedStation);
@@ -954,7 +736,7 @@
         function addPoints(points) {
             userProfile.points += points;
             const newLevel = Math.floor(userProfile.points / 100) + 1;
-            if (newLevel > userProfile.level) { userProfile.level = newLevel; showToast(`🎉 Новый уровень: ${newLevel}!`); }
+            if (newLevel > userProfile.level) { userProfile.level = newLevel; showToast(`🎉 Уровень ${newLevel}!`); }
             storage.set('userProfile', userProfile);
             updateUI();
         }
@@ -964,7 +746,7 @@
                 userProfile.achievements.push(id);
                 storage.set('userProfile', userProfile);
                 updateUI();
-                showToast('🏆 Новое достижение!');
+                showToast('🏆 Достижение!');
             }
         }
 
@@ -985,51 +767,51 @@
             const [lat, lon] = coords.split(',').map(c => parseFloat(c.trim()));
             if (isNaN(lat) || isNaN(lon)) { showToast('❌ Неверный формат координат', 'error'); return; }
 
+            const limitMin = parseInt(document.getElementById('new-limit-min').value) || 0;
+            const limitMax = parseInt(document.getElementById('new-limit-max').value) || 0;
+
             const fuels = {};
             const basePrices = { ai92: 63.99, ai95: 69.69, ai100: 79.99, dt: 75.50 };
             ['ai92', 'ai95', 'ai100', 'dt'].forEach(fuelType => {
                 if (document.getElementById(`fuel-${fuelType}`).checked) {
-                    fuels[fuelType] = { price: basePrices[fuelType], available: true };
+                    fuels[fuelType] = { price: basePrices[fuelType], available: true, limit_min: limitMin, limit_max: limitMax };
                 }
             });
 
             try {
-                showToast('💾 Сохранение на сервере...');
+                showToast('💾 Сохранение...');
                 const response = await fetch(`${API_URL}?action=add_station`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name, address, lat, lon, brand: name, fuels, user_id: userData?.id || 'guest'
-                    })
+                    body: JSON.stringify({ name, address, lat, lon, brand: name, fuels, user_id: userData?.id || 'guest' })
                 });
                 const result = await response.json();
-
                 if (result.success) {
-                    showToast('✅ АЗС добавлена в базу данных! +20 баллов', 'success');
+                    showToast('✅ АЗС добавлена! +20 баллов', 'success');
                     addPoints(20);
                     unlockAchievement('explorer');
                     closeAddStationModal();
                     document.getElementById('new-station-name').value = '';
                     document.getElementById('new-station-address').value = '';
                     document.getElementById('new-station-coords').value = '';
+                    document.getElementById('new-limit-min').value = '0';
+                    document.getElementById('new-limit-max').value = '0';
                     await loadStationsData();
                 } else {
-                    showToast('❌ Ошибка: ' + (result.error || 'Неизвестная'), 'error');
+                    showToast('❌ Ошибка: ' + (result.error || ''), 'error');
                 }
             } catch (e) {
-                console.error(e);
-                showToast('❌ Ошибка сети при сохранении', 'error');
+                showToast('❌ Ошибка сети', 'error');
             }
         }
 
         function openYandexNavi(lat, lon) {
-            if (!lat || !lon) { showToast('❌ Координаты не доступны', 'error'); return; }
+            if (!lat || !lon) { showToast('❌ Нет координат', 'error'); return; }
             const userLat = userCoords?.lat || 55.7558;
             const userLon = userCoords?.lon || 37.6173;
             const naviUrl = `yandexnavi://build_route_on_map?lat_from=${userLat}&lon_from=${userLon}&lat_to=${lat}&lon_to=${lon}`;
             const mapsUrl = `https://yandex.ru/maps/?rtext=${userLat},${userLon}~${lat},${lon}&rtt=auto`;
-            vkBridge.send('VKWebAppOpenLink', { link: naviUrl }).then(() => showToast('🗺️ Открываем Яндекс Навигатор...'))
-                .catch(() => vkBridge.send('VKWebAppOpenLink', { link: mapsUrl }).then(() => showToast('🗺️ Открываем Яндекс Карты...')).catch(() => window.open(mapsUrl, '_blank')));
+            vkBridge.send('VKWebAppOpenLink', { link: naviUrl }).catch(() => vkBridge.send('VKWebAppOpenLink', { link: mapsUrl }).catch(() => window.open(mapsUrl, '_blank')));
         }
 
         function switchTab(tabName) {
@@ -1046,7 +828,7 @@
         function renderFavorites() {
             const container = document.getElementById('tab-favorites');
             const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
-            if (favStations.length === 0) { container.innerHTML = '<div class="loading">У вас пока нет избранных АЗС</div>'; return; }
+            if (favStations.length === 0) { container.innerHTML = '<div class="loading">Нет избранных АЗС</div>'; return; }
             container.innerHTML = favStations.map(station => {
                 const logo = getStationLogo(station.name);
                 return `<div class="station-item" onclick="openStationPanel('${station.id}')">
@@ -1059,7 +841,7 @@
         function renderAllAchievements() {
             const container = document.getElementById('tab-achievements');
             const allAchievements = [
-                { id: 'first_report', name: '🎯 Первый отчёт', desc: 'Отправьте первый отчёт о топливе', unlocked: userProfile.achievements.includes('first_report') },
+                { id: 'first_report', name: '🎯 Первый отчёт', desc: 'Отправьте первый отчёт', unlocked: userProfile.achievements.includes('first_report') },
                 { id: '10_reports', name: '🔥 10 отчётов', desc: 'Отправьте 10 отчётов', unlocked: userProfile.achievements.includes('10_reports') },
                 { id: 'helper', name: '🤝 Помощник', desc: 'Помогите 50 пользователям', unlocked: userProfile.achievements.includes('helper') },
                 { id: 'explorer', name: '🗺️ Исследователь', desc: 'Добавьте АЗС на карту', unlocked: userProfile.achievements.includes('explorer') }
@@ -1076,7 +858,6 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // ================= 6. ЗАПУСК ПРИЛОЖЕНИЯ =================
         async function startApp() {
             try {
                 await vkBridge.send('VKWebAppInit');
@@ -1088,10 +869,8 @@
                     document.getElementById('user-avatar').innerHTML = `${data.first_name[0]}${data.last_name[0]}<span class="user-level">${userProfile.level}</span>`;
                 }
             } catch (e) {
-                console.log('Работаем в режиме гостя или вне VK');
                 document.getElementById('user-name').textContent = 'Гость';
             }
-
             updateUI();
             await initMap();
             await loadStationsData();
