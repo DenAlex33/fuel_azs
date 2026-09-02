@@ -465,13 +465,65 @@
             'Трасса': { color: '#FF6B00', icon: 'ТР' }
         };
 
+        // Убираем DEMO_STATIONS и загружаем из файла
+        let allStations = [];
+        let userReports = storage.get('userReports', []);
+        let userProfile = storage.get('userProfile', { points: 0, level: 1, achievements: [], reports: 0, favorites: [] });
+        
+        // Функция загрузки данных из JSON файла
+        async function loadStationsData() {
+            try {
+                console.log("🔄 Загрузка данных о заправках из stations.json...");
+                const response = await fetch('stations.json');
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                allStations = data.stations || [];
+
+                console.log(`✅ Загружено ${allStations.length} АЗС`);
+
+                // Обновляем статистику и карту
+                updateStats();
+                renderAchievements();
+                loadStationsOnMap();
+
+                // Если координаты уже определены, ищем рядом
+                if (userCoords) {
+                    searchStationsByCoords(userCoords.lat, userCoords.lon);
+                }
+
+                showToast(`✅ Загружено ${allStations.length} АЗС`);
+
+            } catch (error) {
+                console.error("❌ Ошибка загрузки stations.json:", error);
+                showToast("⚠️ Не удалось загрузить данные о заправках", "error");
+
+                // Если не удалось загрузить, используем демо-данные
+                allStations = DEMO_STATIONS;
+                updateStats();
+                loadStationsOnMap();
+            }
+        }
+
+        // Демо-данные на случай ошибки загрузки
         const DEMO_STATIONS = [
-            { id: '1', name: 'Лукойл', address: 'МКАД 2 км, вл5', lat: 55.752, lon: 37.574, fuels: { ai92: { price: 63.99, available: true, updated: Date.now() - 300000 }, ai95: { price: 69.69, available: true, updated: Date.now() - 300000 }, ai100: { price: 79.99, available: true, updated: Date.now() - 300000 }, dt: { price: 75.50, available: true, updated: Date.now() - 300000 } }, reports: [], rating: 4.8 },
-            { id: '2', name: 'Татнефть', address: 'ул. Победы, 29, Реутов', lat: 55.759, lon: 37.860, fuels: { ai92: { price: 64.50, available: true, updated: Date.now() - 600000 }, ai95: { price: 70.20, available: false, updated: Date.now() - 600000 }, ai100: { price: 80.50, available: true, updated: Date.now() - 600000 }, dt: { price: 76.00, available: true, updated: Date.now() - 600000 } }, reports: [], rating: 4.5 },
-            { id: '3', name: 'Роснефть', address: 'ш. Энтузиастов, 56', lat: 55.745, lon: 37.870, fuels: { ai92: { price: 63.80, available: true, updated: Date.now() - 900000 }, ai95: { price: 69.50, available: true, updated: Date.now() - 900000 }, ai100: { price: 79.80, available: false, updated: Date.now() - 900000 }, dt: { price: 75.20, available: true, updated: Date.now() - 900000 } }, reports: [], rating: 4.3 },
-            { id: '4', name: 'Газпромнефть', address: 'ул. Ленина, 15', lat: 55.765, lon: 37.855, fuels: { ai92: { price: 64.20, available: true, updated: Date.now() - 1200000 }, ai95: { price: 70.00, available: true, updated: Date.now() - 1200000 }, ai100: { price: 80.20, available: true, updated: Date.now() - 1200000 }, dt: { price: 75.80, available: false, updated: Date.now() - 1200000 } }, reports: [], rating: 4.6 },
-            { id: '5', name: 'Shell', address: 'пр-т Мира, 100', lat: 55.770, lon: 37.620, fuels: { ai92: { price: 65.00, available: true, updated: Date.now() - 1500000 }, ai95: { price: 71.00, available: true, updated: Date.now() - 1500000 }, ai100: { price: 81.00, available: true, updated: Date.now() - 1500000 }, dt: { price: 76.50, available: true, updated: Date.now() - 1500000 } }, reports: [], rating: 4.7 }
+            { id: '1', name: 'Лукойл', address: 'МКАД 2 км, вл5', lat: 55.752, lon: 37.574, fuels: { ai92: { price: 63.99, available: true }, ai95: { price: 69.69, available: true } }, reports: [], rating: 4.8 },
+            { id: '2', name: 'Газпромнефть', address: 'ул. Победы, 29, Реутов', lat: 55.759, lon: 37.860, fuels: { ai92: { price: 64.50, available: true }, ai95: { price: 70.20, available: false } }, reports: [], rating: 4.5 }
         ];
+
+        // Вызываем загрузку после инициализации
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                initMap();
+                loadStationsData();
+            });
+        } else {
+            initMap();
+            loadStationsData();
+        }
 
         const storage = {
             get: (key, defaultValue) => { try { const item = localStorage.getItem(key); return item ? JSON.parse(item) : defaultValue; } catch { return defaultValue; } },
@@ -488,12 +540,12 @@
             storage.set('theme', isDark ? 'dark' : 'light');
             document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
             document.getElementById('header-theme-icon').textContent = isDark ? '☀️' : '🌙';
-            
+
             // Меняем тему карты Яндекс
             if (myMap) {
                 myMap.setType(isDark ? 'yandex#dark' : 'yandex#map');
             }
-            
+
             showToast(isDark ? '🌙 Тёмная тема включена' : '☀️ Светлая тема включена');
         }
 
