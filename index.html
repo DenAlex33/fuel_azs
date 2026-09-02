@@ -6,7 +6,7 @@
     <title>Заправки Рядом</title>
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     <!-- Добавил API ключ для Яндекс Карт -->
-    <script src="https://api-maps.yandex.ru/2.1/?apikey=6e8b51fc-ea9d-4fa2-9202-456ca76afc6f&lang=ru_RU" type="text/javascript"></script>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=fb2c860a-11d4-4c8a-9634-414a348a395a&lang=ru_RU" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -664,17 +664,17 @@
         });
 
         function openYandexMaps() {
-        const lat = userCoords?.lat || 55.751244;
-        const lon = userCoords?.lon || 37.618423;
+            const lat = userCoords?.lat || 55.751244;
+            const lon = userCoords?.lon || 37.618423;
 
-        // Открываем Яндекс Карты с метками всех АЗС
-        let points = stations.map(s => `${s.lat},${s.lon}`).join('~');
-        const url = `https://yandex.ru/maps/?ll=${lon}%2C${lat}&spn=0.1%2C0.1&l=map${points ? `&pt=${points}` : ''}`;
+            // Открываем Яндекс Карты с метками всех АЗС
+            let points = stations.map(s => `${s.lat},${s.lon}`).join('~');
+            const url = `https://yandex.ru/maps/?ll=${lon}%2C${lat}&spn=0.1%2C0.1&l=map${points ? `&pt=${points}` : ''}`;
 
-        vkBridge.send('VKWebAppOpenLink', { link: url }).catch(() => {
-            window.open(url, '_blank');
-        });
-    }
+            vkBridge.send('VKWebAppOpenLink', { link: url }).catch(() => {
+                window.open(url, '_blank');
+            });
+        }
     </script>
 </body>
 </html>
