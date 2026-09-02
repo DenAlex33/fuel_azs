@@ -30,7 +30,7 @@
         /* Header */
         .header { background: var(--card-bg); padding: 15px 20px; box-shadow: 0 2px 10px var(--shadow); position: sticky; top: 0; z-index: 100; }
         .header-content { display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 0; }
         .header-actions { display: flex; gap: 8px; }
         .icon-btn { width: 40px; height: 40px; border: none; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: var(--transition); }
         .icon-btn:active { transform: scale(0.9); background: var(--border); }
@@ -54,7 +54,7 @@
 
         /* Map */
         .map-container { height: 50vh; min-height: 350px; position: relative; background: #e5e5e5; }
-        #map { width: 100%; height: 100%; }
+        #map { width: 100%; height: 100%; transition: filter 0.3s; }
 
         /* Map Controls */
         .map-controls {
@@ -82,7 +82,7 @@
         }
         .map-control-btn:active { transform: scale(0.9); }
 
-        /* Side Panel - ИСПРАВЛЕНО для мобильных */
+        /* Side Panel */
         .side-panel {
             position: fixed;
             top: 0;
@@ -99,14 +99,14 @@
             overflow: hidden;
         }
         .side-panel.show { right: 0; }
-        
-        /* На мобильных - на весь экран */
+
         @media (max-width: 767px) {
-            .side-panel {
-                max-width: 100%;
-            }
+            .side-panel { max-width: 100%; }
+            .map-container { height: 40vh; min-height: 300px; }
+            .map-controls { bottom: 12px; right: 12px; }
+            .map-control-btn { width: 46px; height: 46px; font-size: 20px; }
         }
-        
+
         .side-panel-overlay {
             position: fixed;
             top: 0;
@@ -242,82 +242,28 @@
         .comment-queue { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
 
         /* Info Block */
-        .info-block {
-            margin-top: 20px;
-            background: var(--bg);
-            border-radius: 12px;
-            padding: 16px;
-            border: 1px solid var(--border);
-        }
-        .info-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .info-content {
-            display: none;
-            margin-top: 12px;
-            font-size: 13px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
+        .info-block { margin-top: 20px; background: var(--bg); border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
+        .info-header { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .info-content { display: none; margin-top: 12px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
         .info-content.show { display: block; }
         .info-arrow { margin-left: auto; transition: transform 0.3s; }
         .info-arrow.show { transform: rotate(180deg); }
 
         /* Confirm Block */
-        .confirm-block {
-            margin-top: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 16px;
-            padding: 20px;
-            color: white;
-        }
+        .confirm-block { margin-top: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; color: white; }
         .confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
         .confirm-text { font-size: 14px; opacity: 0.9; margin-bottom: 16px; line-height: 1.4; }
         .confirm-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .confirm-btn {
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            border: none;
-            transition: var(--transition);
-        }
+        .confirm-btn { padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; transition: var(--transition); }
         .confirm-btn:active { transform: scale(0.95); }
         .confirm-btn-yes { background: white; color: var(--primary); }
         .confirm-btn-no { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; }
 
         /* Nearby Stations */
         .nearby-section { margin-top: 20px; }
-        .nearby-station-item {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            background: var(--bg);
-            border-radius: 12px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
+        .nearby-station-item { display: flex; align-items: center; padding: 12px; background: var(--bg); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: var(--transition); }
         .nearby-station-item:active { transform: scale(0.98); background: var(--border); }
-        .nearby-station-logo {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            background: var(--gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            margin-right: 12px;
-            flex-shrink: 0;
-        }
+        .nearby-station-logo { width: 40px; height: 40px; border-radius: 8px; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; margin-right: 12px; flex-shrink: 0; }
         .nearby-station-info { flex: 1; min-width: 0; }
         .nearby-station-name { font-weight: 700; font-size: 15px; }
         .nearby-station-address { font-size: 12px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -370,15 +316,9 @@
         .toast.success { background: var(--success); color: white; }
         .toast.error { background: var(--danger); color: white; }
 
-        /* Responsive */
         @media (min-width: 768px) {
             .bottom-sheet { display: none; }
             .side-panel { max-width: 450px; }
-        }
-        @media (max-width: 767px) {
-            .map-container { height: 40vh; min-height: 300px; }
-            .map-controls { bottom: 12px; right: 12px; }
-            .map-control-btn { width: 46px; height: 46px; font-size: 20px; }
         }
 
         .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
@@ -389,10 +329,14 @@
 <body>
     <div class="header">
         <div class="header-content">
-            <h1>⛽ Заправки Рядом</h1>
+            <!-- Кнопка добавления АЗС теперь здесь, слева от заголовка -->
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="icon-btn" onclick="openAddStationModal()" title="Добавить АЗС">➕</button>
+                <h1>⛽ Заправки Рядом</h1>
+            </div>
             <div class="header-actions">
                 <button class="icon-btn" onclick="toggleTheme()" title="Тема">
-                    <span id="header-theme-icon"></span>
+                    <span id="header-theme-icon">🌙</span>
                 </button>
             </div>
         </div>
@@ -422,13 +366,8 @@
 
     <div class="map-container">
         <div id="map"></div>
-
-        <!-- Map Controls -->
         <div class="map-controls">
-            <button class="map-control-btn" id="theme-toggle-btn" onclick="toggleTheme()">
-                <span id="theme-icon">🌙</span>
-            </button>
-            <button class="map-control-btn" onclick="useMyLocation()">
+            <button class="map-control-btn" onclick="useMyLocation()" title="Моё местоположение">
                 <span>📍</span>
             </button>
         </div>
@@ -436,12 +375,6 @@
 
     <div class="bottom-sheet" id="bottom-sheet">
         <div class="sheet-handle"></div>
-        
-        <!-- Кнопка добавления АЗС в bottom sheet -->
-        <button onclick="openAddStationModal()" class="btn btn-primary" style="margin-bottom: 16px;">
-             Добавить АЗС
-        </button>
-        
         <div class="tabs">
             <button class="tab active" onclick="switchTab('search')">🔍 Поиск</button>
             <button class="tab" onclick="switchTab('favorites')">❤️ Избранное</button>
@@ -455,7 +388,7 @@
         <div id="tab-achievements" style="display: none;"></div>
     </div>
 
-    <!-- Side Panel (Avito-style) -->
+    <!-- Side Panel -->
     <div class="side-panel-overlay" id="panel-overlay" onclick="closeSidePanel()"></div>
     <div class="side-panel" id="side-panel">
         <div class="panel-header">
@@ -477,7 +410,7 @@
         <div class="panel-header">
             <div class="panel-header-top">
                 <div class="panel-header-content">
-                    <div class="panel-title"> Добавить АЗС</div>
+                    <div class="panel-title">➕ Добавить АЗС</div>
                     <div class="panel-address">Помогите другим водителям!</div>
                 </div>
                 <button class="panel-close" onclick="closeAddStationModal()">✕</button>
@@ -520,18 +453,16 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // ================= ДАННЫЕ =================
         let myMap, userData = null, userCoords = null, stations = [], selectedStation = null;
 
-        // Логотипы сетей АЗС (цвета и иконки)
         const STATION_LOGOS = {
-            'Лукойл': { color: '#E31E24', icon: 'ЛУК', emoji: '' },
-            'Газпромнефть': { color: '#00A651', icon: 'ГПН', emoji: '' },
-            'Роснефть': { color: '#0055A5', icon: 'РН', emoji: '🔵' },
-            'Татнефть': { color: '#00A651', icon: 'ТН', emoji: '⚪' },
-            'Shell': { color: '#FFD500', icon: '🐚', emoji: '🟡' },
-            'BP': { color: '#00B04F', icon: 'BP', emoji: '🟢' },
-            'Трасса': { color: '#FF6B00', icon: 'ТР', emoji: '🟠' }
+            'Лукойл': { color: '#E31E24', icon: 'ЛУК' },
+            'Газпромнефть': { color: '#00A651', icon: 'ГПН' },
+            'Роснефть': { color: '#0055A5', icon: 'РН' },
+            'Татнефть': { color: '#00A651', icon: 'ТН' },
+            'Shell': { color: '#FFD500', icon: '🐚' },
+            'BP': { color: '#00B04F', icon: 'BP' },
+            'Трасса': { color: '#FF6B00', icon: 'ТР' }
         };
 
         const DEMO_STATIONS = [
@@ -539,12 +470,7 @@
             { id: '2', name: 'Татнефть', address: 'ул. Победы, 29, Реутов', lat: 55.759, lon: 37.860, fuels: { ai92: { price: 64.50, available: true, updated: Date.now() - 600000 }, ai95: { price: 70.20, available: false, updated: Date.now() - 600000 }, ai100: { price: 80.50, available: true, updated: Date.now() - 600000 }, dt: { price: 76.00, available: true, updated: Date.now() - 600000 } }, reports: [], rating: 4.5 },
             { id: '3', name: 'Роснефть', address: 'ш. Энтузиастов, 56', lat: 55.745, lon: 37.870, fuels: { ai92: { price: 63.80, available: true, updated: Date.now() - 900000 }, ai95: { price: 69.50, available: true, updated: Date.now() - 900000 }, ai100: { price: 79.80, available: false, updated: Date.now() - 900000 }, dt: { price: 75.20, available: true, updated: Date.now() - 900000 } }, reports: [], rating: 4.3 },
             { id: '4', name: 'Газпромнефть', address: 'ул. Ленина, 15', lat: 55.765, lon: 37.855, fuels: { ai92: { price: 64.20, available: true, updated: Date.now() - 1200000 }, ai95: { price: 70.00, available: true, updated: Date.now() - 1200000 }, ai100: { price: 80.20, available: true, updated: Date.now() - 1200000 }, dt: { price: 75.80, available: false, updated: Date.now() - 1200000 } }, reports: [], rating: 4.6 },
-            { id: '5', name: 'Shell', address: 'пр-т Мира, 100', lat: 55.770, lon: 37.620, fuels: { ai92: { price: 65.00, available: true, updated: Date.now() - 1500000 }, ai95: { price: 71.00, available: true, updated: Date.now() - 1500000 }, ai100: { price: 81.00, available: true, updated: Date.now() - 1500000 }, dt: { price: 76.50, available: true, updated: Date.now() - 1500000 } }, reports: [], rating: 4.7 },
-            { id: '6', name: 'BP', address: 'Ленинградский пр-т, 25', lat: 55.780, lon: 37.590, fuels: { ai92: { price: 64.80, available: false, updated: Date.now() - 1800000 }, ai95: { price: 70.80, available: true, updated: Date.now() - 1800000 }, ai100: { price: 80.80, available: true, updated: Date.now() - 1800000 }, dt: { price: 76.20, available: true, updated: Date.now() - 1800000 } }, reports: [], rating: 4.4 },
-            { id: '7', name: 'Лукойл', address: 'Варшавское ш., 50', lat: 55.730, lon: 37.610, fuels: { ai92: { price: 63.90, available: true, updated: Date.now() - 2100000 }, ai95: { price: 69.60, available: true, updated: Date.now() - 2100000 }, ai100: { price: 79.90, available: true, updated: Date.now() - 2100000 }, dt: { price: 75.40, available: true, updated: Date.now() - 2100000 } }, reports: [], rating: 4.6 },
-            { id: '8', name: 'Газпромнефть', address: 'Кутузовский пр-т, 30', lat: 55.740, lon: 37.550, fuels: { ai92: { price: 64.30, available: true, updated: Date.now() - 2400000 }, ai95: { price: 70.10, available: true, updated: Date.now() - 2400000 }, ai100: { price: 80.30, available: false, updated: Date.now() - 2400000 }, dt: { price: 75.90, available: true, updated: Date.now() - 2400000 } }, reports: [], rating: 4.5 },
-            { id: '9', name: 'Роснефть', address: 'Новый Арбат, 15', lat: 55.755, lon: 37.590, fuels: { ai92: { price: 63.70, available: true, updated: Date.now() - 2700000 }, ai95: { price: 69.40, available: true, updated: Date.now() - 2700000 }, ai100: { price: 79.70, available: true, updated: Date.now() - 2700000 }, dt: { price: 75.10, available: true, updated: Date.now() - 2700000 } }, reports: [], rating: 4.4 },
-            { id: '10', name: 'Татнефть', address: 'Тверская ул., 20', lat: 55.760, lon: 37.600, fuels: { ai92: { price: 64.10, available: true, updated: Date.now() - 3000000 }, ai95: { price: 69.90, available: true, updated: Date.now() - 3000000 }, ai100: { price: 80.10, available: true, updated: Date.now() - 3000000 }, dt: { price: 75.70, available: true, updated: Date.now() - 3000000 } }, reports: [], rating: 4.7 }
+            { id: '5', name: 'Shell', address: 'пр-т Мира, 100', lat: 55.770, lon: 37.620, fuels: { ai92: { price: 65.00, available: true, updated: Date.now() - 1500000 }, ai95: { price: 71.00, available: true, updated: Date.now() - 1500000 }, ai100: { price: 81.00, available: true, updated: Date.now() - 1500000 }, dt: { price: 76.50, available: true, updated: Date.now() - 1500000 } }, reports: [], rating: 4.7 }
         ];
 
         const storage = {
@@ -556,19 +482,26 @@
         let allStations = storage.get('allStations', DEMO_STATIONS);
         let userReports = storage.get('userReports', []);
 
-        // ================= ИНИЦИАЛИЗАЦИЯ =================
         function toggleTheme() {
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             storage.set('theme', isDark ? 'dark' : 'light');
             document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
             document.getElementById('header-theme-icon').textContent = isDark ? '☀️' : '🌙';
+            
+            // Меняем тему карты Яндекс
+            if (myMap) {
+                myMap.setType(isDark ? 'yandex#dark' : 'yandex#map');
+            }
+            
             showToast(isDark ? '🌙 Тёмная тема включена' : '☀️ Светлая тема включена');
         }
+
+        // Применяем сохраненную тему при загрузке
         if (storage.get('theme') === 'dark') {
             document.body.classList.add('dark-theme');
             document.getElementById('theme-icon').textContent = '☀️';
-            document.getElementById('header-theme-icon').textContent = '️';
+            document.getElementById('header-theme-icon').textContent = '☀️';
         }
 
         vkBridge.send('VKWebAppInit').then(() => vkBridge.send('VKWebAppGetUserInfo')).then((data) => {
@@ -616,23 +549,25 @@
         function renderAchievements() {
             const container = document.getElementById('achievements');
             if (!container) return;
-            const badges = { 'first_report': ' Первый отчёт', '10_reports': '🔥 10 отчётов', 'helper': '🤝 Помощник', 'explorer': '🗺️ Исследователь' };
+            const badges = { 'first_report': '🎯 Первый отчёт', '10_reports': '🔥 10 отчётов', 'helper': '🤝 Помощник', 'explorer': '🗺️ Исследователь' };
             container.innerHTML = userProfile.achievements.map(a => `<div class="achievement">${badges[a] || a}</div>`).join('');
         }
 
         function initMap() {
             if (typeof ymaps === 'undefined') {
-                console.error(' Яндекс Карты API не загружен');
+                console.error('❌ Яндекс Карты API не загружен');
                 return;
             }
 
             try {
                 ymaps.ready(function () {
                     if (!myMap) {
+                        const isDark = document.body.classList.contains('dark-theme');
                         myMap = new ymaps.Map("map", {
                             center: [55.751244, 37.618423],
                             zoom: 10,
-                            controls: ['zoomControl', 'geolocationControl']
+                            controls: ['zoomControl', 'geolocationControl'],
+                            type: isDark ? 'yandex#dark' : 'yandex#map'
                         });
                         console.log('✅ Карта успешно инициализирована');
                         loadStationsOnMap();
@@ -649,7 +584,7 @@
                     return logo;
                 }
             }
-            return { color: '#667eea', icon: '⛽', emoji: '⚪' };
+            return { color: '#667eea', icon: '⛽' };
         }
 
         function createCustomPlacemark(station) {
@@ -691,7 +626,6 @@
             });
         }
 
-        // ================= SIDE PANEL =================
         function openStationPanel(stationId) {
             const station = allStations.find(s => s.id === stationId);
             if (!station) return;
@@ -716,10 +650,7 @@
 
             const nearbyStations = allStations
                 .filter(s => s.id !== station.id)
-                .map(s => ({
-                    ...s,
-                    distance: calculateDistance(station.lat, station.lon, s.lat, s.lon)
-                }))
+                .map(s => ({ ...s, distance: calculateDistance(station.lat, station.lon, s.lat, s.lon) }))
                 .filter(s => s.distance <= 5)
                 .sort((a, b) => a.distance - b.distance)
                 .slice(0, 5);
@@ -776,7 +707,7 @@
                 });
                 commentsHtml += '</div>';
             } else {
-                commentsHtml = '<div class="comments-section"><div class="comments-title"> Последние отчёты</div><div class="loading" style="padding: 20px;">Пока нет отчётов. Будьте первым!</div></div>';
+                commentsHtml = '<div class="comments-section"><div class="comments-title">📋 Последние отчёты</div><div class="loading" style="padding: 20px;">Пока нет отчётов. Будьте первым!</div></div>';
             }
 
             let nearbyHtml = '';
@@ -876,7 +807,7 @@
             const content = document.getElementById('panel-content');
             content.innerHTML = `
                 <div class="report-form">
-                    <div class="form-title"> Отчёт: ${fuelNames[fuelType]}</div>
+                    <div class="form-title">📝 Отчёт: ${fuelNames[fuelType]}</div>
                     <div class="form-group">
                         <label class="form-label">Статус топлива</label>
                         <div class="radio-group">
@@ -967,10 +898,8 @@
             updateStats();
         }
 
-        // ================= ФУНКЦИИ =================
         async function useMyLocation() {
             showToast('📍 Определяем местоположение...');
-
             let gotLocation = false;
 
             try {
@@ -987,11 +916,7 @@
             if (!gotLocation && navigator.geolocation) {
                 try {
                     const position = await new Promise((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(resolve, reject, {
-                            enableHighAccuracy: true,
-                            timeout: 10000,
-                            maximumAge: 0
-                        });
+                        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
                     });
                     userCoords = { lat: position.coords.latitude, lon: position.coords.longitude };
                     await searchStationsByCoords(userCoords.lat, userCoords.lon);
@@ -1018,24 +943,20 @@
 
         async function searchStationsByCoords(lat, lon) {
             if (myMap) myMap.setCenter([lat, lon], 13);
-
             stations = allStations
                 .map(s => ({ ...s, distance: calculateDistance(lat, lon, s.lat, s.lon) }))
                 .filter(s => s.distance <= 10)
                 .sort((a, b) => a.distance - b.distance);
-
             renderStationsList(stations);
         }
 
         function renderStationsList(stationsList) {
             const container = document.getElementById('stations-list-mobile');
             if (!container) return;
-
             if (stationsList.length === 0) {
                 container.innerHTML = '<div class="loading">АЗС не найдены в радиусе 10 км</div>';
                 return;
             }
-
             container.innerHTML = stationsList.map(station => {
                 const isFavorite = userProfile.favorites.includes(station.id);
                 const logo = getStationLogo(station.name);
@@ -1080,9 +1001,7 @@
             }
             storage.set('userProfile', userProfile);
             updateUI();
-            if (selectedStation && selectedStation.id === stationId) {
-                renderPanelContent(selectedStation);
-            }
+            if (selectedStation && selectedStation.id === stationId) renderPanelContent(selectedStation);
             loadStationsOnMap();
             if (stations.length > 0) renderStationsList(stations);
         }
@@ -1139,11 +1058,7 @@
             ['ai92', 'ai95', 'ai100', 'dt'].forEach(fuelType => {
                 const checkbox = document.getElementById(`fuel-${fuelType}`);
                 if (checkbox && checkbox.checked) {
-                    fuels[fuelType] = {
-                        price: basePrices[fuelType],
-                        available: true,
-                        updated: Date.now()
-                    };
+                    fuels[fuelType] = { price: basePrices[fuelType], available: true, updated: Date.now() };
                 }
             });
 
@@ -1180,22 +1095,15 @@
             }
             const userLat = userCoords?.lat || 55.7558;
             const userLon = userCoords?.lon || 37.6173;
-
             const naviUrl = `yandexnavi://build_route_on_map?lat_from=${userLat}&lon_from=${userLon}&lat_to=${lat}&lon_to=${lon}`;
             const mapsUrl = `https://yandex.ru/maps/?rtext=${userLat},${userLon}~${lat},${lon}&rtt=auto`;
 
             vkBridge.send('VKWebAppOpenLink', { link: naviUrl })
-                .then(() => {
-                    showToast('🗺️ Открываем Яндекс Навигатор...');
-                })
+                .then(() => showToast('🗺️ Открываем Яндекс Навигатор...'))
                 .catch(() => {
                     vkBridge.send('VKWebAppOpenLink', { link: mapsUrl })
-                        .then(() => {
-                            showToast('🗺️ Открываем Яндекс Карты...');
-                        })
-                        .catch(() => {
-                            window.open(mapsUrl, '_blank');
-                        });
+                        .then(() => showToast('🗺️ Открываем Яндекс Карты...'))
+                        .catch(() => window.open(mapsUrl, '_blank'));
                 });
         }
 
@@ -1234,7 +1142,7 @@
                     <div class="station-item" onclick="openStationPanel('${station.id}')">
                         <div class="station-item-logo" style="background: ${logo.color}">${logo.icon}</div>
                         <div class="station-item-info">
-                            <div class="station-item-name">${station.name}  ${station.rating} <span class="favorite-icon">❤️</span></div>
+                            <div class="station-item-name">${station.name} ⭐ ${station.rating} <span class="favorite-icon">❤️</span></div>
                             <div class="station-item-address">${station.address}</div>
                         </div>
                     </div>
@@ -1247,7 +1155,7 @@
             const allAchievements = [
                 { id: 'first_report', name: '🎯 Первый отчёт', desc: 'Отправьте первый отчёт о топливе', unlocked: userProfile.achievements.includes('first_report') },
                 { id: '10_reports', name: '🔥 10 отчётов', desc: 'Отправьте 10 отчётов', unlocked: userProfile.achievements.includes('10_reports') },
-                { id: 'helper', name: ' Помощник', desc: 'Помогите 50 пользователям', unlocked: userProfile.achievements.includes('helper') },
+                { id: 'helper', name: '🤝 Помощник', desc: 'Помогите 50 пользователям', unlocked: userProfile.achievements.includes('helper') },
                 { id: 'explorer', name: '🗺️ Исследователь', desc: 'Добавьте АЗС на карту', unlocked: userProfile.achievements.includes('explorer') }
             ];
             container.innerHTML = allAchievements.map(a => `
