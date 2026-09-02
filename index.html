@@ -543,19 +543,31 @@
 
             let commentsHtml = '';
             const stationReports = station.reports || [];
+
             if (stationReports.length > 0) {
+                // Сортируем от новых к старым и берём последние 10
+                const sortedReports = [...stationReports]
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                    .slice(0, 10);
+
                 commentsHtml = '<div class="comments-section"><div class="comments-title">📋 Последние отчёты</div>';
-                stationReports.slice(-5).reverse().forEach(report => {
-                    commentsHtml += `<div class="comment-item">
-                        <div class="comment-header"><span class="comment-user">${report.fuel_type.toUpperCase()}</span><span class="comment-time">${timeAgo(report.created_at)}</span></div>
-                        <div class="comment-text">${report.status === 'available' ? '✅ Есть' : '❌ Нет'} | 💰 ${parseFloat(report.price).toFixed(2)} ₽</div>
-                        ${report.queue ? `<div class="comment-queue">🚗 ${getQueueText(report.queue)}</div>` : ''}
-                        ${report.comment ? `<div class="comment-text" style="margin-top: 8px; font-style: italic;">"${report.comment}"</div>` : ''}
-                    </div>`;
+                sortedReports.forEach(report => {
+                    commentsHtml += `
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span class="comment-user">${report.fuel_type.toUpperCase()}</span>
+                                <span class="comment-time">${timeAgo(report.created_at)}</span>
+                            </div>
+                            <div class="comment-text">
+                                ${report.status === 'available' ? '✅ Есть' : '❌ Нет'} | 💰 ${parseFloat(report.price).toFixed(2)} ₽
+                            </div>
+                            ${report.queue ? `<div class="comment-queue">🚗 ${getQueueText(report.queue)}</div>` : ''}
+                            ${report.comment ? `<div class="comment-text" style="margin-top: 8px; font-style: italic;">"${report.comment}"</div>` : ''}
+                        </div>`;
                 });
                 commentsHtml += '</div>';
             } else {
-                commentsHtml = '<div class="comments-section"><div class="comments-title">📋 Последние отчёты</div><div class="loading" style="padding: 20px;">Пока нет отчётов. Будьте первым!</div></div>';
+                commentsHtml = '<div class="comments-section"><div class="comments-title"> Последние отчёты</div><div class="loading" style="padding: 20px;">Пока нет отчётов. Будьте первым!</div></div>';
             }
 
             let nearbyHtml = '';
@@ -710,10 +722,10 @@
         async function quickReport(stationId, fuelType, isAvailable) {
             const station = allStations.find(s => s.id == stationId);
             if (!station) return;
-            
+
             const fuel = station.fuels[fuelType];
             const fuelNames = { ai92: 'АИ-92', ai95: 'АИ-95', ai100: 'АИ-100', dt: 'ДТ' };
-            
+
             // Показываем упрощённое подтверждение
             const confirmed = confirm(
                 `📝 ${isAvailable ? 'Подтвердить наличие' : 'Сообщить об отсутствии'} ${fuelNames[fuelType]}?\n\n` +
@@ -721,7 +733,7 @@
                 `📏 Лимит: ${fuel.limit_min || 0} – ${fuel.limit_max || 0} л\n\n` +
                 `Нажмите OK для подтверждения или Отмена для развёрнутого отчёта`
             );
-            
+
             if (confirmed) {
                 // Быстрая отправка с последними данными
                 try {
@@ -815,26 +827,29 @@
         }
 
         function timeAgo(timestamp) {
-            // Если timestamp это строка (из MySQL), преобразуем её
             let date;
             if (typeof timestamp === 'string') {
-                // MySQL формат: "2024-01-15 12:00:00"
-                date = new Date(timestamp + ' UTC');
+                // MySQL формат: "2024-01-15 12:00:00" → "2024-01-15T12:00:00"
+                const isoString = timestamp.replace(' ', 'T');
+                date = new Date(isoString + 'Z'); // Добавляем Z для UTC
             } else {
                 date = new Date(timestamp);
             }
 
+            if (isNaN(date.getTime())) return 'только что';
+
             const now = new Date();
             const seconds = Math.floor((now - date) / 1000);
 
-            if (seconds < 0) return 'только что';
-            if (seconds < 60) return 'только что';
+            if (seconds < 0 || seconds < 60) return 'только что';
             const minutes = Math.floor(seconds / 60);
             if (minutes < 60) return `${minutes} мин назад`;
             const hours = Math.floor(minutes / 60);
             if (hours < 24) return `${hours} ч назад`;
             const days = Math.floor(hours / 24);
-            return `${days} дн назад`;
+            if (days < 30) return `${days} дн назад`;
+            const months = Math.floor(days / 30);
+            return `${months} мес назад`;
         }
 
         function toggleFavorite(stationId) {
@@ -922,11 +937,20 @@
 
         function openYandexNavi(lat, lon) {
             if (!lat || !lon) { showToast('❌ Нет координат', 'error'); return; }
+            
             const userLat = userCoords?.lat || 55.7558;
             const userLon = userCoords?.lon || 37.6173;
-            const naviUrl = `yandexnavi://build_route_on_map?lat_from=${userLat}&lon_from=${userLon}&lat_to=${lat}&lon_to=${lon}`;
+
+            // Универсальная ссылка на Яндекс Карты (работает везде)
             const mapsUrl = `https://yandex.ru/maps/?rtext=${userLat},${userLon}~${lat},${lon}&rtt=auto`;
-            vkBridge.send('VKWebAppOpenLink', { link: naviUrl }).catch(() => vkBridge.send('VKWebAppOpenLink', { link: mapsUrl }).catch(() => window.open(mapsUrl, '_blank')));
+
+            // Пытаемся открыть через VK Bridge
+            vkBridge.send('VKWebAppOpenLink', { link: mapsUrl })
+                .then(() => showToast('🗺️ Открываем маршрут...'))
+                .catch(() => {
+                    // Fallback: открываем в новом окне
+                    window.open(mapsUrl, '_blank');
+                });
         }
 
         function switchTab(tabName) {
