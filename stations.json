@@ -1,0 +1,149 @@
+{
+  "stations": [
+    {
+      "id": "1",
+      "name": "Лукойл",
+      "address": "Большая Косинская ул., 8, Москва",
+      "lat": 55.6892,
+      "lon": 37.8567,
+      "brand": "Лукойл",
+      "fuels": {
+        "ai92": {"price": 63.99, "available": true},
+        "ai95": {"price": 69.69, "available": true},
+        "ai100": {"price": 79.99, "available": true},
+        "dt": {"price": 75.50, "available": true}
+      },
+      "rating": 4.6
+    },
+    {
+      "id": "2",
+      "name": "Газпромнефть",
+      "address": "ул. Дмитрия Ульянова, 9А, стр. 1, Москва",
+      "lat": 55.6789,
+      "lon": 37.5923,
+      "brand": "Газпромнефть",
+      "fuels": {
+        "ai92": {"price": 64.50, "available": true},
+        "ai95": {"price": 70.20, "available": true},
+        "ai100": {"price": 80.50, "available": true},
+        "dt": {"price": 76.00, "available": true}
+      },
+      "rating": 4.5
+    },
+    {
+      "id": "3",
+      "name": "Нефтьмагистраль",
+      "address": "Московская область, городской округ Домодедово",
+      "lat": 55.4356,
+      "lon": 37.7645,
+      "brand": "Нефтьмагистраль",
+      "fuels": {
+        "ai92": {"price": 63.80, "available": true},
+        "ai95": {"price": 69.50, "available": true},
+        "dt": {"price": 75.20, "available": true}
+      },
+      "rating": 4.3
+    },
+    {
+      "id": "4",
+      "name": "Газпромнефть",
+      "address": "Владимирская область, Петушинский муниципальный округ",
+      "lat": 55.9234,
+      "lon": 38.1456,
+      "brand": "Газпромнефть",
+      "fuels": {
+        "ai92": {"price": 64.20, "available": true},
+        "ai95": {"price": 70.00, "available": true},
+        "dt": {"price": 75.80, "available": true}
+      },
+      "rating": 4.4
+    },
+    {
+      "id": "5",
+      "name": "Нефтьмагистраль",
+      "address": "д. Троице-Сельцо, вл1с1А",
+      "lat": 55.8123,
+      "lon": 37.6789,
+      "brand": "Нефтьмагистраль",
+      "fuels": {
+        "ai92": {"price": 63.90, "available": true},
+        "ai95": {"price": 69.60, "available": true},
+        "dt": {"price": 75.40, "available": true}
+      },
+      "rating": 4.5
+    },
+    {
+      "id": "6",
+      "name": "Лукойл",
+      "address": "МКАД 2 км, вл5, Москва",
+      "lat": 55.7520,
+      "lon": 37.5740,
+      "brand": "Лукойл",
+      "fuels": {
+        "ai92": {"price": 64.10, "available": true},
+        "ai95": {"price": 69.90, "available": true},
+        "ai100": {"price": 80.10, "available": true},
+        "dt": {"price": 75.70, "available": true}
+      },
+      "rating": 4.7
+    },
+    {
+      "id": "7",
+      "name": "Татнефть",
+      "address": "ул. Победы, 29, Реутов",
+      "lat": 55.7590,
+      "lon": 37.8600,
+      "brand": "Татнефть",
+      "fuels": {
+        "ai92": {"price": 63.70, "available": true},
+        "ai95": {"price": 69.40, "available": true},
+        "dt": {"price": 75.10, "available": true}
+      },
+      "rating": 4.6
+    },
+    {
+      "id": "8",
+      "name": "Роснефть",
+      "address": "ш. Энтузиастов, 56, Москва",
+      "lat": 55.7450,
+      "lon": 37.8700,
+      "brand": "Роснефть",
+      "fuels": {
+        "ai92": {"price": 64.30, "available": true},
+        "ai95": {"price": 70.10, "available": true},
+        "dt": {"price": 75.90, "available": true}
+      },
+      "rating": 4.4
+    },
+    {
+      "id": "9",
+      "name": "Shell",
+      "address": "пр-т Мира, 100, Москва",
+      "lat": 55.7700,
+      "lon": 37.6200,
+      "brand": "Shell",
+      "fuels": {
+        "ai92": {"price": 65.00, "available": true},
+        "ai95": {"price": 71.00, "available": true},
+        "dt": {"price": 76.50, "available": true}
+      },
+      "rating": 4.7
+    },
+    {
+      "id": "10",
+      "name": "BP",
+      "address": "Ленинградский пр-т, 25, Москва",
+      "lat": 55.7800,
+      "lon": 37.5900,
+      "brand": "BP",
+      "fuels": {
+        "ai92": {"price": 64.80, "available": true},
+        "ai95": {"price": 70.80, "available": true},
+        "dt": {"price": 76.20, "available": true}
+      },
+      "rating": 4.5
+    }
+  ],
+  "lastUpdate": "2024-01-15T12:00:00Z",
+  "source": "Яндекс Карты + ручное добавление"
+}
