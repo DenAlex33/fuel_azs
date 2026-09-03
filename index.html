@@ -1154,6 +1154,12 @@
                 countEl.textContent = `${favCount} ${getStationWord(favCount)}`;
             }
 
+            // ОТЛАДКА: выводим ID избранных и всех АЗС
+            console.log('ID в избранном:', userProfile.favorites);
+            console.log('ID всех АЗС:', allStations.map(s => s.id));
+            console.log('Типы ID в избранном:', userProfile.favorites.map(id => typeof id));
+            console.log('Типы ID в АЗС:', allStations.map(s => typeof s.id));
+
             if (favCount === 0) {
                 content.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
@@ -1166,9 +1172,35 @@
                 return;
             }
 
-            const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
+            // ИСПРАВЛЕНИЕ: приводим ID к строке для корректного сравнения
+            const favStations = allStations.filter(s =>
+                userProfile.favorites.includes(String(s.id)) ||
+                userProfile.favorites.includes(Number(s.id))
+            );
 
-            console.log('Загружаю избранное:', favStations.length, 'АЗС');
+            console.log('Найдено АЗС в избранном:', favStations.length);
+            console.log('Найденные АЗС:', favStations);
+
+            if (favStations.length === 0) {
+                // Если АЗС не найдены, возможно они удалены с сервера
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 64px; margin-bottom: 16px;">⚠️</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">АЗС не найдены</div>
+                        <div style="font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
+                            АЗС из вашего избранного отсутствуют в базе.<br>
+                            Возможно, они были удалены или изменены.
+                        </div>
+                        <button class="btn btn-danger" onclick="clearInvalidFavorites()" style="margin-bottom: 12px;">
+                            ️ Очистить избранное
+                        </button>
+                        <button class="btn btn-primary" onclick="closeFavoritesPanel(); switchTab('search')">
+                            🔍 Найти новые АЗС
+                        </button>
+                    </div>
+                `;
+                return;
+            }
 
             content.innerHTML = favStations.map(station => {
                 const logo = getStationLogo(station.name);
@@ -1194,6 +1226,23 @@
             }).join('');
         }
 
+        // Функция для очистки недействительных ID из избранного
+        function clearInvalidFavorites() {
+            const validIds = allStations.map(s => String(s.id));
+            userProfile.favorites = userProfile.favorites.filter(id => validIds.includes(String(id)));
+            storage.set('userProfile', userProfile);
+            updateUI();
+            loadFavoritesToPanel();
+            showToast('🗑️ Избранное очищено от несуществующих АЗС');
+        }
+
+        function openStationFromFavorites(stationId) {
+            closeFavoritesPanel();
+            setTimeout(() => {
+                openStationPanel(stationId);
+            }, 300);
+        }
+
         function openStationFromFavorites(stationId) {
             // Закрываем панель избранного
             closeFavoritesPanel();
@@ -1204,14 +1253,15 @@
         }
 
         function removeFromFavorites(stationId) {
-            const station = allStations.find(s => s.id == stationId);
-            const idx = userProfile.favorites.indexOf(stationId);
+            const station = allStations.find(s => String(s.id) === String(stationId));
+            const idx = userProfile.favorites.findIndex(id => String(id) === String(stationId));
+
             if (idx > -1) {
                 userProfile.favorites.splice(idx, 1);
                 storage.set('userProfile', userProfile);
                 updateUI();
-                loadFavoritesToPanel(); // Обновляем список
-                showToast(` "${station?.name || 'АЗС'}" удалено из избранного`);
+                loadFavoritesToPanel();
+                showToast(`💔 "${station?.name || 'АЗС'}" удалено из избранного`);
             }
         }
 
