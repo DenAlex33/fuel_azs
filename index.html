@@ -424,7 +424,26 @@
         </div>
     </div>
 
+    <!-- Отдельная панель для избранного -->
+    <div class="side-panel-overlay" id="favorites-overlay" onclick="closeFavoritesPanel()"></div>
+    <div class="side-panel" id="favorites-panel">
+        <div class="panel-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="panel-header-top">
+                <div class="panel-header-content">
+                    <div class="panel-title">❤️ Избранное</div>
+                    <div class="panel-address" id="favorites-count">0 АЗС</div>
+                </div>
+                <button class="panel-close" onclick="closeFavoritesPanel()">✕</button>
+            </div>
+        </div>
+        <div class="panel-content" id="favorites-content">
+            <div class="loading">Загрузка...</div>
+        </div>
+    </div>
+
     <div id="toast" class="toast"></div>
+
+
 
     <script>
         const API_URL = 'https://it-reutov.start-ovh.ru/api/index.php';
@@ -572,7 +591,7 @@
                     loadStationsOnMap();
                 }
             }
-            
+
             updateStats();
             renderAchievements();
             updateUI();
@@ -1071,52 +1090,69 @@
             const idx = userProfile.favorites.indexOf(stationId);
             const isAdding = idx === -1;
 
+            console.log('Toggle favorite:', stationId, stationName, 'isAdding:', isAdding);
+            console.log('Current favorites:', userProfile.favorites);
+
             if (isAdding) {
                 userProfile.favorites.push(stationId);
                 lastAddedFavoriteId = stationId;
                 addPoints(5);
                 showFavoriteNotification(stationName, true);
+                showToast(`❤️ "${stationName}" добавлено в избранное! +5 баллов`, 'success');
             } else {
                 userProfile.favorites.splice(idx, 1);
                 lastAddedFavoriteId = null;
                 showToast(`💔 "${stationName}" удалено из избранного`);
             }
 
+            console.log('New favorites:', userProfile.favorites);
+
             storage.set('userProfile', userProfile);
             updateUI();
-            if (selectedStation && selectedStation.id == stationId) renderPanelContent(selectedStation);
+
+            if (selectedStation && selectedStation.id == stationId) {
+                renderPanelContent(selectedStation);
+            }
+
             loadStationsOnMap();
             if (stations.length > 0) renderStationsList(stations);
 
-            const favTab = document.getElementById('tab-favorites');
-            if (favTab && favTab.style.display !== 'none') {
-                renderFavorites();
+            // Если открыта панель избранного - обновляем её
+            const favoritesPanel = document.getElementById('favorites-panel');
+            if (favoritesPanel && favoritesPanel.classList.contains('show')) {
+                loadFavoritesToPanel();
             }
         }
 
         function toggleFavoritesPanel() {
-            const panel = document.getElementById('side-panel');
-            const overlay = document.getElementById('panel-overlay');
+            const sidePanel = document.getElementById('side-panel');
+            const favoritesPanel = document.getElementById('favorites-panel');
 
-            if (panel.classList.contains('show')) {
-                panel.classList.remove('show');
-                overlay.classList.remove('show');
-            } else {
-                loadFavoritesToPanel();
-                panel.classList.add('show');
-                overlay.classList.add('show');
+            // Если открыта боковая панель с деталями АЗС - закрываем её
+            if (sidePanel.classList.contains('show')) {
+                sidePanel.classList.remove('show');
+                document.getElementById('panel-overlay').classList.remove('show');
             }
+
+            // Открываем панель избранного
+            loadFavoritesToPanel();
+            favoritesPanel.classList.add('show');
+            document.getElementById('favorites-overlay').classList.add('show');
+        }
+
+        function closeFavoritesPanel() {
+            document.getElementById('favorites-panel').classList.remove('show');
+            document.getElementById('favorites-overlay').classList.remove('show');
         }
 
         function loadFavoritesToPanel() {
-            const panel = document.getElementById('side-panel');
-            const nameEl = document.getElementById('panel-station-name');
-            const addrEl = document.getElementById('panel-station-address');
-            const content = document.getElementById('panel-content');
+            const content = document.getElementById('favorites-content');
+            const countEl = document.getElementById('favorites-count');
 
-            nameEl.textContent = '❤️ Избранное';
             const favCount = userProfile.favorites.length;
-            addrEl.textContent = `${favCount} ${getStationWord(favCount)}`;
+            if (countEl) {
+                countEl.textContent = `${favCount} ${getStationWord(favCount)}`;
+            }
 
             if (favCount === 0) {
                 content.innerHTML = `
@@ -1124,6 +1160,7 @@
                         <div style="font-size: 64px; margin-bottom: 16px;">💔</div>
                         <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Пока пусто</div>
                         <div style="font-size: 14px; line-height: 1.5;">Добавляйте АЗС в избранное,<br>чтобы быстро находить их</div>
+                        <button class="btn btn-primary" onclick="closeFavoritesPanel(); switchTab('search')" style="margin-top: 20px;">🔍 Найти АЗС</button>
                     </div>
                 `;
                 return;
@@ -1131,34 +1168,50 @@
 
             const favStations = allStations.filter(s => userProfile.favorites.includes(s.id));
 
+            console.log('Загружаю избранное:', favStations.length, 'АЗС');
+
             content.innerHTML = favStations.map(station => {
                 const logo = getStationLogo(station.name);
+                const availableFuels = Object.entries(station.fuels).filter(([_, fuel]) => fuel.available);
+
                 return `
-                    <div class="station-item" onclick="openStationPanel('${station.id}')" style="margin-bottom: 12px;">
+                    <div class="station-item" onclick="openStationFromFavorites('${station.id}')" style="margin-bottom: 12px; cursor: pointer;">
                         <div class="station-item-logo" style="background: ${logo.color}">${logo.icon}</div>
                         <div class="station-item-info">
-                            <div class="station-item-name">${station.name}</div>
-                            <div class="station-item-address">${station.address}</div>
+                            <div class="station-item-name">${station.name} <span style="color: var(--warning);">⭐ ${station.rating}</span></div>
+                            <div class="station-item-address">📍 ${station.address}</div>
                             <div class="station-item-fuel" style="margin-top: 8px;">
-                                ${Object.entries(station.fuels).map(([type, fuel]) =>
-                                    `<span class="fuel-tag ${fuel.available ? 'available' : ''}">${type.toUpperCase()}: ${fuel.price.toFixed(0)}₽</span>`
-                                ).join('')}
+                                ${Object.entries(station.fuels).map(([type, fuel]) => `
+                                    <span class="fuel-tag ${fuel.available ? 'available' : ''}" style="margin: 2px;">
+                                        ${type.toUpperCase()}: ${fuel.price.toFixed(0)}₽ ${fuel.available ? '✅' : '❌'}
+                                    </span>
+                                `).join('')}
                             </div>
                         </div>
-                        <button class="btn btn-danger" onclick="event.stopPropagation(); removeFromFavorites('${station.id}')" style="padding: 8px 12px; font-size: 12px; width: auto; flex-shrink: 0;">Убрать</button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation(); removeFromFavorites('${station.id}')" style="padding: 8px 12px; font-size: 12px; width: auto; flex-shrink: 0; margin-left: 8px;">Убрать</button>
                     </div>
                 `;
             }).join('');
         }
 
+        function openStationFromFavorites(stationId) {
+            // Закрываем панель избранного
+            closeFavoritesPanel();
+            // Открываем панель с деталями АЗС
+            setTimeout(() => {
+                openStationPanel(stationId);
+            }, 300);
+        }
+
         function removeFromFavorites(stationId) {
+            const station = allStations.find(s => s.id == stationId);
             const idx = userProfile.favorites.indexOf(stationId);
             if (idx > -1) {
                 userProfile.favorites.splice(idx, 1);
                 storage.set('userProfile', userProfile);
                 updateUI();
-                loadFavoritesToPanel();
-                showToast('❌ Удалено из избранного');
+                loadFavoritesToPanel(); // Обновляем список
+                showToast(` "${station?.name || 'АЗС'}" удалено из избранного`);
             }
         }
 
