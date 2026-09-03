@@ -1148,18 +1148,19 @@
         function loadFavoritesToPanel() {
             const content = document.getElementById('favorites-content');
             const countEl = document.getElementById('favorites-count');
-
+        
             const favCount = userProfile.favorites.length;
             if (countEl) {
                 countEl.textContent = `${favCount} ${getStationWord(favCount)}`;
             }
-
-            // ОТЛАДКА: выводим ID избранных и всех АЗС
+        
+            // ОТЛАДКА
+            console.log('=== ИЗБРАННОЕ ===');
             console.log('ID в избранном:', userProfile.favorites);
-            console.log('ID всех АЗС:', allStations.map(s => s.id));
             console.log('Типы ID в избранном:', userProfile.favorites.map(id => typeof id));
+            console.log('ID всех АЗС:', allStations.map(s => s.id));
             console.log('Типы ID в АЗС:', allStations.map(s => typeof s.id));
-
+        
             if (favCount === 0) {
                 content.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
@@ -1171,28 +1172,33 @@
                 `;
                 return;
             }
-
-            // ИСПРАВЛЕНИЕ: приводим ID к строке для корректного сравнения
-            const favStations = allStations.filter(s =>
-                userProfile.favorites.includes(String(s.id)) ||
-                userProfile.favorites.includes(Number(s.id))
-            );
-
-            console.log('Найдено АЗС в избранном:', favStations.length);
-            console.log('Найденные АЗС:', favStations);
-
+        
+            // ИСПРАВЛЕНИЕ: приводим к строке для сравнения
+            const favIds = userProfile.favorites.map(id => String(id));
+            console.log('favIds (строки):', favIds);
+        
+            const favStations = allStations.filter(s => {
+                const stationId = String(s.id);
+                const found = favIds.includes(stationId);
+                if (found) {
+                    console.log(`✅ Найдена АЗС: ${s.id} (${s.name})`);
+                }
+                return found;
+            });
+        
+            console.log('Найдено АЗС:', favStations.length);
+        
             if (favStations.length === 0) {
-                // Если АЗС не найдены, возможно они удалены с сервера
                 content.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 64px; margin-bottom: 16px;">⚠️</div>
+                        <div style="font-size: 64px; margin-bottom: 16px;">️</div>
                         <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">АЗС не найдены</div>
                         <div style="font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
                             АЗС из вашего избранного отсутствуют в базе.<br>
                             Возможно, они были удалены или изменены.
                         </div>
                         <button class="btn btn-danger" onclick="clearInvalidFavorites()" style="margin-bottom: 12px;">
-                            ️ Очистить избранное
+                            🗑️ Очистить избранное
                         </button>
                         <button class="btn btn-primary" onclick="closeFavoritesPanel(); switchTab('search')">
                             🔍 Найти новые АЗС
@@ -1201,11 +1207,9 @@
                 `;
                 return;
             }
-
+        
             content.innerHTML = favStations.map(station => {
                 const logo = getStationLogo(station.name);
-                const availableFuels = Object.entries(station.fuels).filter(([_, fuel]) => fuel.available);
-
                 return `
                     <div class="station-item" onclick="openStationFromFavorites('${station.id}')" style="margin-bottom: 12px; cursor: pointer;">
                         <div class="station-item-logo" style="background: ${logo.color}">${logo.icon}</div>
